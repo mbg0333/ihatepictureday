@@ -4,12 +4,32 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Info, CheckCircle2, AlertTriangle, Truck, ShieldCheck, Camera, Smartphone, Plus, Trash2, CreditCard, ShoppingBag, MapPin, User, Mail, Phone, Zap, Send, Trophy } from "lucide-react";
+import { 
+  Camera, 
+  Trash2, 
+  Plus, 
+  Upload, 
+  CheckCircle2, 
+  ChevronRight, 
+  ChevronLeft,
+  X,
+  CreditCard,
+  Mail,
+  Smartphone,
+  MapPin,
+  Loader2,
+  Info,
+  AlertTriangle,
+  Truck,
+  ShieldCheck,
+  ShoppingBag,
+  User,
+  Phone,
+  Zap,
+  Send,
+  Trophy
+} from "lucide-react";
 import { useState, useRef, useMemo } from "react";
-import { loadStripe } from "@stripe/stripe-js";
-
-// Placeholder for Stripe (User would replace with their own publishable key)
-const stripePromise = loadStripe("pk_test_placeholder");
 
 import { useUploadThing } from "@/lib/uploadthing";
 
