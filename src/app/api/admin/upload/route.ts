@@ -14,7 +14,10 @@ export async function POST(request: Request): Promise<NextResponse> {
         /* clientPayload?: string, */
       ) => {
         // 1. Verify the user is logged in
-        if (!(await isAuthenticated())) {
+        // We'll log this to see if it's failing
+        const isAuth = await isAuthenticated();
+        if (!isAuth) {
+          console.error('Upload attempt by unauthorized user for:', pathname);
           throw new Error('Unauthorized');
         }
 
@@ -22,22 +25,22 @@ export async function POST(request: Request): Promise<NextResponse> {
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
           tokenPayload: JSON.stringify({
-            // optional, sent to your server on upload completion
             pathname,
           }),
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
         // This is called after the file is uploaded to Vercel Blob
-        console.log('blob upload completed', blob, tokenPayload);
+        console.log('Blob upload completed successfully:', blob.url);
       },
     });
 
     return NextResponse.json(jsonResponse);
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Vercel Blob handleUpload error:', error);
     return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 }, // The client will receive this as an error
+      { error: error.message || 'Internal Server Error during upload initialization' },
+      { status: 500 },
     );
   }
 }
