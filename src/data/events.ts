@@ -26,8 +26,7 @@ export const activeGalleries: GalleryEvent[] = [
     displayDate: "04/25/2026",
     samples: [],
     specials: [
-      { label: "Free Shipping", detail: "With $35 Advance Pay credit" },
-      { label: "25% OFF", detail: "On all Premium Bundles" }
+      { label: "Free Shipping", detail: "With $35 Advance Pay credit" }
     ]
   },
   {
@@ -39,9 +38,7 @@ export const activeGalleries: GalleryEvent[] = [
     date: "2026-04-18",
     displayDate: "04/18/2026",
     samples: [],
-    specials: [
-      { label: "Free Shipping", detail: "With $35 Advance Pay credit" }
-    ]
+    specials: []
   },
   {
     id: "lpar-baseball",
@@ -52,9 +49,7 @@ export const activeGalleries: GalleryEvent[] = [
     date: "2026-03-21",
     displayDate: "03/21/2026",
     samples: [],
-    specials: [
-      { label: "Free Shipping", detail: "With $35 Advance Pay credit" }
-    ]
+    specials: []
   },
   {
     id: "hms-basketball",
@@ -65,9 +60,7 @@ export const activeGalleries: GalleryEvent[] = [
     date: "2026-02-02",
     displayDate: "02/02/2026",
     samples: [],
-    specials: [
-      { label: "Free Shipping", detail: "With $35 Advance Pay credit" }
-    ]
+    specials: []
   },
   {
     id: "lpar-basketball",
@@ -78,9 +71,7 @@ export const activeGalleries: GalleryEvent[] = [
     date: "2026-01-10",
     displayDate: "01/10/2026",
     samples: [],
-    specials: [
-      { label: "Free Shipping", detail: "With $35 Advance Pay credit" }
-    ]
+    specials: []
   },
   {
     id: "hudson-basketball",
@@ -91,8 +82,6 @@ export const activeGalleries: GalleryEvent[] = [
     date: "2025-12-13",
     displayDate: "12/13/2025",
     samples: [],
-    specials: [
-      { label: "Free Shipping", detail: "With $35 Advance Pay credit" }
-    ]
+    specials: []
   }
 ];
