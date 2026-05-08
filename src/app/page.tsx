@@ -7,37 +7,63 @@ import { WhyUs } from "@/components/WhyUs";
 import { ServicesPreview } from "@/components/ServicesPreview";
 import { LogoCloud } from "@/components/LogoCloud";
 import { Footer } from "@/components/Footer";
+import { list } from '@vercel/blob';
 
-export default function Home() {
-  const heroDir = path.join(process.cwd(), 'public', 'images', 'hero');
+export default async function Home() {
   let heroImages: string[] = [];
+
+  // 1. Try to fetch from Vercel Blob first (Production)
   try {
-    if (fs.existsSync(heroDir)) {
-      const files = fs.readdirSync(heroDir);
-      heroImages = files
-        .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
-        .map(file => `/images/hero/${encodeURIComponent(file)}`);
+    const { blobs } = await list({ prefix: 'images/hero/' });
+    if (blobs.length > 0) {
+      heroImages = blobs.map(blob => blob.url);
     }
   } catch (e) {
-    console.error("Error reading hero images:", e);
+    console.error("Error reading cloud hero images:", e);
   }
 
-  // Fallback to event images if hero folder is empty
+  // 2. If no cloud hero images, try cloud event images fallback
   if (heroImages.length === 0) {
-    const eventsDir = path.join(process.cwd(), 'public', 'images', 'events');
     try {
-      const eventFolders = fs.readdirSync(eventsDir);
-      eventFolders.forEach(folder => {
-        const folderPath = path.join(eventsDir, folder);
-        if (fs.statSync(folderPath).isDirectory()) {
-          const files = fs.readdirSync(folderPath)
-            .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
-            .map(file => `/images/events/${folder}/${encodeURIComponent(file)}`);
-          heroImages = [...heroImages, ...files];
-        }
-      });
+      const { blobs } = await list({ prefix: 'images/events/' });
+      if (blobs.length > 0) {
+        heroImages = blobs.map(blob => blob.url);
+      }
     } catch (e) {
-      console.error("Error reading event images fallback:", e);
+      console.error("Error reading cloud event images fallback:", e);
+    }
+  }
+
+  // 3. Last Resort: Try local filesystem (for local development or if cloud is empty)
+  if (heroImages.length === 0) {
+    const heroDir = path.join(process.cwd(), 'public', 'images', 'hero');
+    try {
+      if (fs.existsSync(heroDir)) {
+        const files = fs.readdirSync(heroDir);
+        heroImages = files
+          .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
+          .map(file => `/images/hero/${encodeURIComponent(file)}`);
+      }
+    } catch (e) {
+      console.error("Error reading local hero images:", e);
+    }
+
+    if (heroImages.length === 0) {
+      const eventsDir = path.join(process.cwd(), 'public', 'images', 'events');
+      try {
+        const eventFolders = fs.readdirSync(eventsDir);
+        eventFolders.forEach(folder => {
+          const folderPath = path.join(eventsDir, folder);
+          if (fs.statSync(folderPath).isDirectory()) {
+            const files = fs.readdirSync(folderPath)
+              .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
+              .map(file => `/images/events/${folder}/${encodeURIComponent(file)}`);
+            heroImages = [...heroImages, ...files];
+          }
+        });
+      } catch (e) {
+        console.error("Error reading local event images fallback:", e);
+      }
     }
   }
   

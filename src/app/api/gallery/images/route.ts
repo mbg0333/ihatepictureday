@@ -1,41 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { readdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { list } from '@vercel/blob';
+import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const category = searchParams.get('category');
+
+  if (!category) {
+    return NextResponse.json({ error: 'Category is required' }, { status: 400 });
+  }
+
   try {
-    const samplesDir = join(process.cwd(), 'public', 'images', 'samples');
-    
-    if (!existsSync(samplesDir)) {
-      return NextResponse.json({ images: [] });
-    }
+    // List blobs with the category prefix
+    const { blobs } = await list({ 
+      prefix: `images/samples/${category.toLowerCase()}/` 
+    });
 
-    const categories = await readdir(samplesDir);
-    let allImages: any[] = [];
+    const images = blobs.map(blob => ({
+      id: blob.pathname,
+      url: blob.url,
+      alt: category,
+    }));
 
-    for (const cat of categories) {
-      const catPath = join(samplesDir, cat);
-      const stat = await readdir(catPath); // Assuming it's a dir
-      
-      const images = stat
-        .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
-        .map(file => ({
-          src: `/images/samples/${cat}/${file}`,
-          category: cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' '),
-          title: file.split('.')[0].replace(/_/g, ' ')
-        }));
-      
-      allImages = [...allImages, ...images];
-    }
-
-    // Sort by category
-    allImages.sort((a, b) => a.category.localeCompare(b.category));
-
-    return NextResponse.json({ images: allImages });
-
+    return NextResponse.json(images);
   } catch (error: any) {
-    console.error('Gallery API Error:', error);
-    return NextResponse.json({ images: [] });
+    console.error('Error fetching images:', error);
+    return NextResponse.json({ error: 'Failed to fetch images' }, { status: 500 });
   }
 }

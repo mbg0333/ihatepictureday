@@ -1,27 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { list } from '@vercel/blob';
+import { NextResponse } from 'next/server';
 
 export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await context.params;
-  const galleryDir = path.join(process.cwd(), 'public', 'images', 'events', id);
+  const { id } = await params;
 
   try {
-    if (!fs.existsSync(galleryDir)) {
-      return NextResponse.json({ images: [] });
-    }
+    const { blobs } = await list({ 
+      prefix: `images/events/${id}/` 
+    });
 
-    const files = fs.readdirSync(galleryDir);
-    const images = files
-      .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
-      .map(file => `/images/events/${id}/${encodeURIComponent(file)}`);
+    const images = blobs.map(blob => ({
+      id: blob.pathname,
+      url: blob.url,
+      alt: `Event image ${id}`,
+    }));
 
-    return NextResponse.json({ images });
-  } catch (error) {
-    console.error('Error reading gallery directory:', error);
-    return NextResponse.json({ images: [] }, { status: 500 });
+    return NextResponse.json(images);
+  } catch (error: any) {
+    console.error(`Error fetching images for event ${id}:`, error);
+    return NextResponse.json({ error: 'Failed to fetch images' }, { status: 500 });
   }
 }

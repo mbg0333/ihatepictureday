@@ -1,74 +1,51 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { readdir, unlink } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { list, del } from '@vercel/blob';
+import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get('type');
+  const id = searchParams.get('id');
+
   try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type'); // 'event' or 'sample'
-    const id = searchParams.get('id'); // galleryId or category
+    let prefix = 'images/';
+    if (type === 'event') prefix += `events/${id}/`;
+    else if (type === 'sample') prefix += `samples/${id}/`;
+    else if (type === 'hero') prefix += `hero/`;
 
-    if (!type || !id) {
-      return NextResponse.json({ error: 'Type and ID are required' }, { status: 400 });
-    }
+    const { blobs } = await list({ prefix });
+    
+    const files = blobs.map(blob => ({
+      name: blob.pathname.split('/').pop(),
+      url: blob.url,
+      path: blob.url // In Vercel Blob, the URL is the unique identifier for deletion
+    }));
 
-    const dirPath = type === 'sample' 
-      ? join(process.cwd(), 'public', 'images', 'samples', id)
-      : type === 'hero'
-      ? join(process.cwd(), 'public', 'images', 'hero')
-      : join(process.cwd(), 'public', 'images', 'events', id);
-
-    if (!existsSync(dirPath)) {
-      return NextResponse.json({ files: [] });
-    }
-
-    const files = await readdir(dirPath);
-    const imageFiles = files
-      .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
-      .map(file => ({
-        name: file,
-        url: type === 'sample' ? `/images/samples/${id}/${file}` : type === 'hero' ? `/images/hero/${file}` : `/images/events/${id}/${file}`,
-        path: type === 'sample' ? `images/samples/${id}/${file}` : type === 'hero' ? `images/hero/${file}` : `images/events/${id}/${file}`
-      }));
-
-    return NextResponse.json({ files: imageFiles });
-
+    return NextResponse.json({ files });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: Request) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get('path'); // We use the URL as the path for Vercel Blob del
+
+  if (!url) {
+    return NextResponse.json({ error: 'No file URL provided' }, { status: 400 });
+  }
+
   try {
-    const { searchParams } = new URL(request.url);
-    const filePath = searchParams.get('path'); // relative path from public/
-
-    if (!filePath) {
-      return NextResponse.json({ error: 'File path is required' }, { status: 400 });
-    }
-
-    // Security check: ensure path is within images directory
-    if (!filePath.startsWith('images/events/') && !filePath.startsWith('images/samples/')) {
-      return NextResponse.json({ error: 'Unauthorized path' }, { status: 403 });
-    }
-
-    const absolutePath = join(process.cwd(), 'public', filePath);
-
-    if (existsSync(absolutePath)) {
-      await unlink(absolutePath);
-      return NextResponse.json({ success: true });
-    } else {
-      return NextResponse.json({ error: 'File not found' }, { status: 404 });
-    }
-
+    await del(url);
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
