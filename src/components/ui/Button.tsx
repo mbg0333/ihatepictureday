@@ -25,6 +25,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       lg: "px-8 py-4 text-lg font-black uppercase tracking-wider",
     };
 
+    const { onDrag, onDragStart, onDragEnd, ...rest } = props as any;
+
     return (
       <motion.button
         ref={ref}
@@ -36,7 +38,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           sizes[size],
           className
         )}
-        {...props}
+        {...rest}
       >
         {children}
       </motion.button>
