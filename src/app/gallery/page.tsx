@@ -6,7 +6,6 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Maximize2, Loader2 } from "lucide-react";
 
-const categories = ["All", "Baseball", "Football", "Softball", "Graphics"];
 
 export default function GalleryPage() {
   const [filter, setFilter] = useState("All");
@@ -14,12 +13,22 @@ export default function GalleryPage() {
   const [galleryImages, setGalleryImages] = useState<{src: string, category: string, title: string}[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [categories, setCategories] = useState(["All", "Baseball", "Football", "Softball", "Graphics"]);
+
   useEffect(() => {
+    // Fetch Images
     fetch('/api/gallery/images')
       .then(res => res.json())
       .then(data => {
         setGalleryImages(data.images || []);
         setLoading(false);
+
+        // Extract unique categories from images to update filters
+        if (data.images && data.images.length > 0) {
+          const uniqueCats = Array.from(new Set(data.images.map((img: any) => img.category)));
+          const finalCats = ["All", ...uniqueCats.filter(c => c !== "All")];
+          setCategories(finalCats as string[]);
+        }
       });
   }, []);
 
