@@ -1,46 +1,43 @@
-import { put } from '@vercel/blob';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
 
 export async function POST(request: Request): Promise<NextResponse> {
-  if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const body = (await request.json()) as HandleUploadBody;
 
   try {
-    const formData = await request.formData();
-    const type = formData.get('type') as string;
-    const files = formData.getAll('files') as File[];
-    
-    let pathPrefix = '';
-    if (type === 'event') {
-      const galleryId = formData.get('galleryId') as string;
-      pathPrefix = `events/${galleryId}`;
-    } else if (type === 'sample') {
-      const category = formData.get('category') as string;
-      pathPrefix = `samples/${category}`;
-    } else if (type === 'hero') {
-      pathPrefix = `hero`;
-    }
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async (
+        pathname: string,
+        /* clientPayload?: string, */
+      ) => {
+        // 1. Verify the user is logged in
+        if (!(await isAuthenticated())) {
+          throw new Error('Unauthorized');
+        }
 
-    const uploadedFiles = [];
-
-    for (const file of files) {
-      const blob = await put(`images/${pathPrefix}/${file.name}`, file, {
-        access: 'public',
-        addRandomSuffix: false, // Keep filenames clean for our explorer
-      });
-      uploadedFiles.push(blob);
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      message: `Successfully uploaded ${files.length} images to ${pathPrefix}`,
-      files: uploadedFiles
+        // 2. Return the configuration for the upload
+        return {
+          allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+          tokenPayload: JSON.stringify({
+            // optional, sent to your server on upload completion
+            pathname,
+          }),
+        };
+      },
+      onUploadCompleted: async ({ blob, tokenPayload }) => {
+        // This is called after the file is uploaded to Vercel Blob
+        console.log('blob upload completed', blob, tokenPayload);
+      },
     });
 
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    return NextResponse.json({ error: error.message || 'Upload failed' }, { status: 500 });
+    return NextResponse.json(jsonResponse);
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 400 }, // The client will receive this as an error
+    );
   }
 }

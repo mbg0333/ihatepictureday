@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { upload } from '@vercel/blob/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, 
@@ -189,46 +190,43 @@ export default function AdminPage() {
     setUploading(true);
     setUploadStatus(null);
 
-    const formData = new FormData();
-    formData.append('type', mode);
-    
-    if (mode === 'event') {
-      formData.append('galleryId', isAddingNew ? customId : selectedGallery);
-    } else if (mode === 'sample') {
-      formData.append('category', isAddingNew ? customId : selectedCategory);
-    }
-
-    Array.from(files).forEach(file => {
-      formData.append('files', file);
-    });
-
     try {
-      const response = await fetch('/api/admin/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setUploadStatus({ success: true, message: data.message });
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        if (isAddingNew) {
-          setIsAddingNew(false);
-          if (mode === 'sample') {
-            setSelectedCategory(customId.toLowerCase());
-            fetchCategories();
-          } else {
-            setSelectedGallery(customId);
-          }
-          setCustomId('');
-        }
-        fetchFiles();
-      } else {
-        throw new Error(data.error || 'Upload failed');
+      let pathPrefix = '';
+      if (mode === 'event') {
+        const galleryId = isAddingNew ? customId : selectedGallery;
+        pathPrefix = `events/${galleryId}`;
+      } else if (mode === 'sample') {
+        const category = isAddingNew ? customId : selectedCategory;
+        pathPrefix = `samples/${category}`;
+      } else if (mode === 'hero') {
+        pathPrefix = `hero`;
       }
+
+      for (const file of Array.from(files)) {
+        await upload(`images/${pathPrefix}/${file.name}`, file, {
+          access: 'public',
+          handleUploadUrl: '/api/admin/upload',
+        });
+      }
+
+      setUploadStatus({ success: true, message: `Successfully uploaded ${files.length} images` });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      
+      if (isAddingNew) {
+        const newId = customId;
+        setIsAddingNew(false);
+        if (mode === 'sample') {
+          setSelectedCategory(newId.toLowerCase());
+          fetchCategories();
+        } else {
+          setSelectedGallery(newId);
+        }
+        setCustomId('');
+      }
+      fetchFiles();
     } catch (err: any) {
-      setUploadStatus({ success: false, message: err.message || 'Something went wrong' });
+      console.error('Upload error:', err);
+      setUploadStatus({ success: false, message: err.message || 'Something went wrong during cloud upload' });
     } finally {
       setUploading(false);
     }
