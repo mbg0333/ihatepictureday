@@ -26,7 +26,7 @@ export const activeGalleries: GalleryEvent[] = [
     displayDate: "04/25/2026",
     samples: [],
     specials: [
-      { label: "Free Shipping", detail: "With $35 Advance Pay credit" }
+      { label: "Free Shipping", detail: "With code CENTRALFREE (Expires 5/13/2026)" }
     ]
   },
   {
