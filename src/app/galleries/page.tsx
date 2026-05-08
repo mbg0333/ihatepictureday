@@ -26,8 +26,8 @@ const GalleryStack = ({ eventId, initialSamples = [] }: { eventId: string, initi
         const res = await fetch(`/api/galleries/${eventId}/images`);
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
-        if (data.images && data.images.length > 0) {
-          setSamples(data.images);
+        if (Array.isArray(data) && data.length > 0) {
+          setSamples(data.map((img: any) => img.url));
         }
       } catch (err) {
         console.error("Failed to fetch gallery images:", err);

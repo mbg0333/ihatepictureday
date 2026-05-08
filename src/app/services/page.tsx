@@ -11,7 +11,7 @@ const detailedServices = [
     description: "Our signature service for youth leagues. Athletes can take as soon as they arrive for their scheduled time—no need to wait on the whole team. Plus, we create perfect dynamic team photos from individual shots, so there's no waiting on everyone to arrive right before the game starts.",
     features: ["On-site professional lighting", "Online proofing", "No paper order forms", "Dynamic team photo"],
     icon: Users,
-    image: "/images/hero.png"
+    image: "collage_central"
   },
   {
     title: "Travel Ball and All\u2011Stars Team Sessions",
@@ -115,13 +115,43 @@ export default function ServicesPage() {
                     <Button variant="outline" size="lg">Inquire About {service.title}</Button>
                   </Link>
                 </div>
-                <div className="flex-1 w-full aspect-square relative overflow-hidden bg-zinc-900 border border-white/5 group">
-                  <img 
-                    src={service.image} 
-                    alt={service.title} 
-                    className="object-cover w-full h-full opacity-60 group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent" />
+                <div className="flex-1 w-full aspect-square relative overflow-hidden bg-zinc-950 border border-white/5 group rounded-2xl">
+                  {service.image === "collage_central" ? (
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <img 
+                        src="/images/events/central/6U DODGERS.jpg" 
+                        alt="Team Background"
+                        className="absolute inset-0 w-full h-full object-cover opacity-30 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                      />
+                      <div className="relative z-10 w-full h-full flex items-center justify-center gap-3 p-6 sm:p-8">
+                        <img 
+                          src="/images/events/central/Charleigh-Spencer-12U-LadyDawgsWhite_003_2_TMP.jpg" 
+                          className="w-[30%] aspect-[3/4] object-cover rounded-xl shadow-2xl border-2 border-white/10 -rotate-6 group-hover:-rotate-12 transition-transform duration-500" 
+                          alt="Athlete"
+                        />
+                        <img 
+                          src="/images/events/central/Reed-Gandy-12U-RedSox_004_5_TMP.jpg" 
+                          className="w-[35%] aspect-[3/4] object-cover rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-2 border-white/20 z-20 -translate-y-4 group-hover:-translate-y-8 transition-transform duration-500" 
+                          alt="Athlete"
+                        />
+                        <img 
+                          src="/images/events/central/Will-Gandy-6U-Dodgers_003_2_TMP.jpg" 
+                          className="w-[30%] aspect-[3/4] object-cover rounded-xl shadow-2xl border-2 border-white/10 rotate-6 group-hover:rotate-12 transition-transform duration-500" 
+                          alt="Athlete"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/20 to-transparent pointer-events-none" />
+                    </div>
+                  ) : (
+                    <>
+                      <img 
+                        src={service.image} 
+                        alt={service.title} 
+                        className="object-cover w-full h-full opacity-60 group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent pointer-events-none" />
+                    </>
+                  )}
                 </div>
               </div>
             ))}
