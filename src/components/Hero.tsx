@@ -15,7 +15,13 @@ export const Hero = ({ eventImages = [] }: { eventImages?: string[] }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 opacity-50 scale-105">
             {eventImages.slice(0, 16).map((src, i) => (
               <div key={i} className="aspect-[4/5] relative overflow-hidden rounded-xl border border-white/10 shadow-2xl">
-                <Image src={src} alt="Event Photo" fill className="object-cover object-top" />
+                <Image 
+                  src={src} 
+                  alt="Event Photo" 
+                  fill 
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover object-top" 
+                />
               </div>
             ))}
           </div>
@@ -24,6 +30,7 @@ export const Hero = ({ eventImages = [] }: { eventImages?: string[] }) => {
             src="/images/hero.png"
             alt="Sports Photography"
             fill
+            sizes="100vw"
             className="object-cover object-center opacity-60 scale-105"
             priority
           />

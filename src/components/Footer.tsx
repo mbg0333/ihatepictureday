@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, Instagram, Facebook, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Camera, Mail, Phone, MapPin } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -21,17 +21,7 @@ export const Footer = () => {
               We're changing the game for youth sports photography in East Texas. 
               Modern graphics, high-energy picture days, and photos kids actually love.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 bg-zinc-900 flex items-center justify-center hover:bg-brand-red transition-colors">
-                <Instagram size={20} />
-              </a>
-              <a href="#" className="w-10 h-10 bg-zinc-900 flex items-center justify-center hover:bg-brand-red transition-colors">
-                <Facebook size={20} />
-              </a>
-              <a href="#" className="w-10 h-10 bg-zinc-900 flex items-center justify-center hover:bg-brand-red transition-colors">
-                <Twitter size={20} />
-              </a>
-            </div>
+
           </div>
 
           <div>

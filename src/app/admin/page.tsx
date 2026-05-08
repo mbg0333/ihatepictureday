@@ -23,7 +23,8 @@ import {
   Loader2,
   Monitor,
   ShieldCheck,
-  Smartphone
+  Smartphone,
+  Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { activeGalleries } from '@/data/events';
@@ -60,7 +61,34 @@ export default function AdminPage() {
   const [dynamicCategories, setDynamicCategories] = useState<Category[]>([]);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [armedDelete, setArmedDelete] = useState<string | null>(null);
+  const [hidingPath, setHidingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleHide = async (fileUrl: string, fileName: string) => {
+    const isHidden = fileName.startsWith('HIDDEN_');
+    const newName = isHidden ? fileName.replace('HIDDEN_', '') : `HIDDEN_${fileName}`;
+    
+    setHidingPath(fileUrl);
+    
+    try {
+      const res = await fetch('/api/admin/files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'rename', path: fileUrl, newName })
+      });
+      
+      const data = await res.json();
+      if (!data.success) {
+        alert(`Failed to ${isHidden ? 'unhide' : 'hide'}: ${data.error || 'Server error'}`);
+      }
+      fetchFiles();
+    } catch (err) {
+      alert('Network Error');
+    } finally {
+      setHidingPath(null);
+    }
+  };
 
   // Check if already authenticated via session cookie
   useEffect(() => {
@@ -122,11 +150,13 @@ export default function AdminPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/admin/categories');
+      const res = await fetch(`/api/admin/categories?type=${mode}`);
       const data = await res.json();
       if (data.categories) {
         setDynamicCategories(data.categories);
-        if (data.categories.length > 0 && !data.categories.find((c: any) => c.id === selectedCategory)) {
+        // Automatically select the first category if the current one isn't in the new list
+        const exists = data.categories.find((c: any) => c.id === selectedCategory);
+        if (data.categories.length > 0 && (!selectedCategory || !exists)) {
           setSelectedCategory(data.categories[0].id);
         }
       }
@@ -136,14 +166,16 @@ export default function AdminPage() {
   };
 
   const fetchFiles = async () => {
+    const id = mode === 'event' ? selectedGallery : (mode === 'sample' || mode === 'bighead') ? selectedCategory : 'hero';
+    if (!id && mode !== 'hero') return;
+    
     setLoadingFiles(true);
-    const id = mode === 'event' ? selectedGallery : mode === 'sample' ? selectedCategory : 'hero';
     try {
-      const res = await fetch(`/api/admin/files?type=${mode}&id=${id}`);
+      const res = await fetch(`/api/admin/files?type=${mode}&id=${id}&_t=${Date.now()}`);
       const data = await res.json();
       setExistingFiles(data.files || []);
     } catch (err) {
-      console.error('Failed to fetch files:', err);
+      console.error('Fetch error:', err);
     } finally {
       setLoadingFiles(false);
     }
@@ -156,21 +188,33 @@ export default function AdminPage() {
     }
   }, [isAuthenticated, mode, selectedGallery, selectedCategory]);
 
-  const handleDelete = async (filePath: string) => {
-    if (!confirm('Are you sure you want to delete this image? This cannot be undone.')) return;
+  const [deletingPath, setDeletingPath] = useState<string | null>(null);
+
+  const handleDelete = async (fileUrl: string, fileName: string) => {
+    setDeletingPath(fileUrl);
+    
+    // Optimistic UI update
+    setExistingFiles(prev => prev.filter(f => f.url !== fileUrl));
     
     try {
-      const res = await fetch(`/api/admin/files?path=${encodeURIComponent(filePath)}`, {
-        method: 'DELETE'
+      const res = await fetch('/api/admin/files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', path: fileUrl })
       });
+      
       const data = await res.json();
-      if (data.success) {
+      if (!data.success) {
+        alert(`Delete failed: ${data.error || 'Server error'}`);
         fetchFiles();
       } else {
-        alert(data.error || 'Delete failed');
+        setTimeout(() => fetchFiles(), 800);
       }
     } catch (err) {
-      alert('Failed to delete file');
+      alert('Network Error: Could not reach the API');
+      fetchFiles();
+    } finally {
+      setDeletingPath(null);
     }
   };
 
@@ -182,6 +226,15 @@ export default function AdminPage() {
     const mockEvent = { target: { files } } as unknown as React.ChangeEvent<HTMLInputElement>;
     handleUpload(mockEvent);
   };
+
+  const [selectedStyle, setSelectedStyle] = useState('STANDARD BIG HEAD');
+
+  const BIG_HEAD_STYLES = [
+    "STANDARD BIG HEAD",
+    "HALF BODY",
+    "HALF BODY WITH NAME",
+    "CARTOON STYLE"
+  ];
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -198,12 +251,24 @@ export default function AdminPage() {
       } else if (mode === 'sample') {
         const category = isAddingNew ? customId : selectedCategory;
         pathPrefix = `samples/${category}`;
+      } else if (mode === 'bighead') {
+        const category = isAddingNew ? customId : selectedCategory;
+        pathPrefix = `bighead/${category}`;
       } else if (mode === 'hero') {
         pathPrefix = `hero`;
       }
 
       for (const file of Array.from(files)) {
-        await upload(`images/${pathPrefix}/${file.name}`, file, {
+        let fileName = file.name;
+        
+        // Smart renaming for builder examples
+        if (mode === 'bighead' && selectedCategory === 'builder-examples') {
+          const ext = file.name.split('.').pop();
+          const styleSlug = selectedStyle.toLowerCase().replace(/\s+/g, '-');
+          fileName = `${styleSlug}.${ext}`;
+        }
+
+        await upload(`images/${pathPrefix}/${fileName}`, file, {
           access: 'public',
           handleUploadUrl: '/api/admin/upload',
         });
@@ -215,7 +280,7 @@ export default function AdminPage() {
       if (isAddingNew) {
         const newId = customId;
         setIsAddingNew(false);
-        if (mode === 'sample') {
+        if (mode === 'sample' || mode === 'bighead') {
           setSelectedCategory(newId.toLowerCase());
           fetchCategories();
         } else {
@@ -340,6 +405,9 @@ export default function AdminPage() {
               <button onClick={() => { setMode('hero'); setIsAddingNew(false); }} className={`flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase italic transition-all ${mode === 'hero' ? "bg-brand-red text-white shadow-lg" : "text-gray-500 hover:text-white"}`}>
                 <Monitor size={14} /> Hero Banners
               </button>
+              <button onClick={() => { setMode('bighead'); setIsAddingNew(false); }} className={`flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase italic transition-all ${mode === 'bighead' ? "bg-brand-red text-white shadow-lg" : "text-gray-500 hover:text-white"}`}>
+                <Camera size={14} /> Big Heads
+              </button>
             </div>
 
             <AnimatePresence mode="wait">
@@ -347,7 +415,7 @@ export default function AdminPage() {
                 <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="bg-zinc-900 border border-white/10 p-6 space-y-6 shadow-xl">
                   <div className="flex justify-between items-center">
                     <h3 className="text-xs font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
-                      <FolderOpen size={14} /> {mode === 'event' ? 'Events' : 'Sports'}
+                      <FolderOpen size={14} /> {mode === 'event' ? 'Events' : mode === 'sample' ? 'Sports' : 'Big Head Categories'}
                     </h3>
                     <button onClick={() => setIsAddingNew(!isAddingNew)} className={`p-1.5 rounded transition-all ${isAddingNew ? "bg-brand-red text-white rotate-45" : "bg-white/5 text-gray-400 hover:bg-brand-red hover:text-white"}`}>
                       <Plus size={14} />
@@ -361,7 +429,7 @@ export default function AdminPage() {
                           <div className="relative">
                             <input 
                               type="text" 
-                              placeholder={mode === 'event' ? "NEW-EVENT-ID" : "NEW-SPORT-ID"} 
+                              placeholder={mode === 'event' ? "NEW-EVENT-ID" : mode === 'sample' ? "NEW-SPORT-ID" : "e.g. SAMPLES or BUILDER-EXAMPLES"} 
                               value={customId} 
                               onChange={(e) => setCustomId(e.target.value.toUpperCase().replace(/\s+/g, '-'))} 
                               onKeyDown={(e) => e.key === 'Enter' && customId && (e.preventDefault(), fileInputRef.current?.click())}
@@ -412,11 +480,27 @@ export default function AdminPage() {
                 <div className="flex flex-col items-center">
                   <Upload size={32} className={`mb-4 transition-all duration-300 ${uploading ? "text-zinc-600 animate-bounce" : "text-brand-red group-hover:scale-125"}`} />
                   <h3 className="text-2xl font-black uppercase italic mb-2">{uploading ? "Uploading..." : "Drop Images Here"}</h3>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-black/60 rounded-full border border-white/5">
-                    <span className="text-[8px] font-black uppercase text-gray-500 tracking-widest">Target:</span>
-                    <span className="text-[10px] font-black uppercase text-brand-red tracking-wider">
-                      {mode === 'event' ? (isAddingNew ? customId || '???' : selectedGallery) : mode === 'sample' ? (isAddingNew ? customId || '???' : selectedCategory) : 'HERO BANNER'}
-                    </span>
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-black/60 rounded-full border border-white/5">
+                      <span className="text-[8px] font-black uppercase text-gray-500 tracking-widest">Target:</span>
+                      <span className="text-[10px] font-black uppercase text-brand-red tracking-wider">
+                        {mode === 'event' ? (isAddingNew ? customId || '???' : selectedGallery) : mode === 'sample' ? (isAddingNew ? customId || '???' : selectedCategory) : mode === 'bighead' ? (isAddingNew ? customId || '???' : selectedCategory) : 'HERO BANNER'}
+                      </span>
+                    </div>
+
+                    {mode === 'bighead' && selectedCategory === 'builder-examples' && (
+                      <div className="mt-4 flex flex-col items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+                        <p className="text-[8px] font-black uppercase text-gray-400 tracking-[0.2em]">Which style is this for?</p>
+                        <select 
+                          value={selectedStyle} 
+                          onChange={(e) => setSelectedStyle(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="bg-zinc-800 border border-brand-red text-white text-[10px] font-black uppercase px-4 py-2 outline-none cursor-pointer hover:bg-zinc-700 transition-colors"
+                        >
+                          {BIG_HEAD_STYLES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -450,13 +534,112 @@ export default function AdminPage() {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {existingFiles.map((file) => (
-                    <motion.div key={file.path} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="group relative aspect-square bg-black border border-white/5 overflow-hidden">
-                      <img src={file.url} alt={file.name} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
-                      <div className="absolute inset-0 bg-brand-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                        <a href={file.url} target="_blank" className="w-10 h-10 bg-white flex items-center justify-center rounded-full hover:bg-brand-red hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 duration-300"><Eye size={18} /></a>
-                        <button onClick={() => handleDelete(file.path)} className="w-10 h-10 bg-brand-red text-white flex items-center justify-center rounded-full hover:bg-white hover:text-brand-red transition-all transform translate-y-4 group-hover:translate-y-0 duration-300 delay-75 shadow-lg"><Trash2 size={18} /></button>
+                    <motion.div 
+                      key={file.path} 
+                      initial={{ opacity: 0, scale: 0.9 }} 
+                      animate={{ opacity: 1, scale: 1 }} 
+                      className={`group relative aspect-square bg-black border border-white/5 overflow-hidden ${deletingPath === file.url ? "opacity-30 cursor-wait" : ""}`}
+                    >
+                      <img src={file.url} alt={file.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
+                      
+                      {deletingPath === file.url && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-brand-red/20">
+                          <Loader2 className="animate-spin text-white" size={24} />
+                        </div>
+                      )}
+
+                      {/* Action Bar - Always visible on mobile, hover on desktop */}
+                      <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black via-black/80 to-transparent md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 flex items-center justify-between gap-2 z-20">
+                        <div className="flex flex-col flex-1 truncate">
+                          <p className="text-[7px] font-black uppercase truncate text-gray-400 group-hover:text-white">{file.name.replace('HIDDEN_', '')}</p>
+                          {file.name.startsWith('HIDDEN_') && (
+                            <span className="text-[6px] font-black text-brand-red uppercase tracking-widest">Hidden</span>
+                          )}
+                        </div>
+                        <div className="flex gap-1.5">
+                          {armedDelete === file.url ? (
+                            <div className="flex gap-1">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setArmedDelete(null);
+                                }}
+                                className="px-2 py-1 bg-white/20 hover:bg-white text-white hover:text-black text-[8px] font-black uppercase rounded transition-all"
+                              >
+                                No
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(file.url, file.name);
+                                  setArmedDelete(null);
+                                }}
+                                className="px-2 py-1 bg-brand-red text-white text-[8px] font-black uppercase rounded animate-pulse"
+                              >
+                                Delete!
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  let folderPrefix = 'images/';
+                                  if (mode === 'event') folderPrefix += `events/${selectedGallery}/`;
+                                  else if (mode === 'sample') folderPrefix += `samples/${selectedCategory}/`;
+                                  else if (mode === 'hero') folderPrefix += `hero/`;
+                                  else if (mode === 'bighead') folderPrefix += `bighead/${selectedCategory}/`;
+                                  
+                                  // Send folderPrefix as part of a custom body or similar
+                                  // Actually, I'll update handleHide to accept folderPrefix
+                                  const getPrefix = () => {
+                                    if (mode === 'event') return `images/events/${selectedGallery}/`;
+                                    if (mode === 'sample') return `images/samples/${selectedCategory}/`;
+                                    if (mode === 'hero') return `images/hero/`;
+                                    if (mode === 'bighead') return `images/bighead/${selectedCategory}/`;
+                                    return 'images/';
+                                  };
+
+                                  const prefix = getPrefix();
+                                  
+                                  const hideAction = async () => {
+                                    const isHidden = file.name.startsWith('HIDDEN_');
+                                    const newName = isHidden ? file.name.replace('HIDDEN_', '') : `HIDDEN_${file.name}`;
+                                    
+                                    setHidingPath(file.url);
+                                    try {
+                                      const res = await fetch('/api/admin/files', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ action: 'rename', path: file.url, newName, folderPrefix: prefix })
+                                      });
+                                      if (res.ok) fetchFiles();
+                                    } catch (err) {}
+                                    finally { setHidingPath(null); }
+                                  };
+                                  hideAction();
+                                }} 
+                                disabled={hidingPath !== null}
+                                className={`w-7 h-7 flex items-center justify-center rounded transition-all ${hidingPath === file.url ? "animate-pulse" : file.name.startsWith('HIDDEN_') ? "bg-brand-red text-white" : "bg-white/10 hover:bg-white text-white hover:text-brand-black"}`}
+                                title={file.name.startsWith('HIDDEN_') ? "Unhide Image" : "Hide Image"}
+                              >
+                                <Eye size={14} className={file.name.startsWith('HIDDEN_') ? "opacity-50" : ""} />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setArmedDelete(file.url);
+                                }} 
+                                disabled={deletingPath !== null}
+                                className={`w-7 h-7 flex items-center justify-center rounded transition-all ${deletingPath === file.url ? "bg-zinc-800 text-zinc-600" : "bg-brand-red/20 hover:bg-brand-red text-brand-red hover:text-white cursor-pointer"}`}
+                                title="Delete Image"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent pointer-events-none"><p className="text-[7px] font-black uppercase truncate text-gray-400 group-hover:text-white transition-colors">{file.name}</p></div>
                     </motion.div>
                   ))}
                 </div>

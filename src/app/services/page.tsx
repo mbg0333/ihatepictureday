@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/Button";
-import { Camera, Zap, Image as ImageIcon, Layers, MapPin, Users, Monitor, Printer, Instagram } from "lucide-react";
+import { Camera, Zap, Image as ImageIcon, Layers, MapPin, Users, Monitor, Printer } from "lucide-react";
 import Link from "next/link";
 
 const detailedServices = [
@@ -45,30 +45,30 @@ export default function ServicesPage() {
               </p>
             </div>
             
-            <div className="grid grid-cols-2 gap-x-12 gap-y-8 pb-2 relative z-10">
+            <div className="grid grid-cols-2 gap-x-4 md:gap-x-12 gap-y-8 pb-2 relative z-10">
               <div className="space-y-1 group">
-                <p className="text-brand-red font-black text-3xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">Dynamic</p>
+                <p className="text-brand-red font-black text-2xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">Dynamic</p>
                 <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Team Photos</p>
               </div>
               <div className="space-y-1 group">
-                <p className="text-brand-red font-black text-3xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">Fundraising</p>
+                <p className="text-brand-red font-black text-2xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">Fundraising</p>
                 <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Opportunities</p>
               </div>
               
               <div className="space-y-1 group">
-                <p className="text-brand-red font-black text-3xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">100%</p>
+                <p className="text-brand-red font-black text-2xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">100%</p>
                 <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Online Proofing</p>
               </div>
               <div className="space-y-1 group">
-                <p className="text-brand-red font-black text-3xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">ZERO</p>
+                <p className="text-brand-red font-black text-2xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">ZERO</p>
                 <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Paper Forms</p>
               </div>
               <div className="space-y-1 group">
-                <p className="text-brand-red font-black text-3xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">FAST</p>
+                <p className="text-brand-red font-black text-2xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">FAST</p>
                 <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Direct Shipping</p>
               </div>
               <div className="space-y-1 group">
-                <p className="text-brand-red font-black text-3xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">HD</p>
+                <p className="text-brand-red font-black text-2xl md:text-5xl italic leading-none group-hover:scale-105 transition-transform origin-left uppercase">HD</p>
                 <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Custom Graphics</p>
               </div>
             </div>

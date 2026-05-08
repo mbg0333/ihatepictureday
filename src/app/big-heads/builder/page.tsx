@@ -29,7 +29,7 @@ import {
   Send,
   Trophy
 } from "lucide-react";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 
 import { useUploadThing } from "@/lib/uploadthing";
 
@@ -50,14 +50,6 @@ const styles: BigHeadStyle[] = [
   "CARTOON STYLE"
 ];
 
-const samples = [
-  { id: 1, title: "Standard Big Head", image: "/images/bigheads/sample1.png" },
-  { id: 2, title: "Head Only Cutout", image: "/images/bigheads/sample2.png" },
-  { id: 3, title: "Half Body Style", image: "/images/bigheads/sample1.png" },
-  { id: 4, title: "Half Body w/ Name", image: "/images/bigheads/sample2.png" },
-  { id: 5, title: "Cartoon Style", image: "/images/bigheads/sample1.png" },
-  { id: 6, title: "League Special", image: "/images/bigheads/sample2.png" },
-];
 
 const PRICE_STANDARD = 25;
 const PRICE_MID = 22;
@@ -90,6 +82,23 @@ export default function BigHeadsPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [builderExamples, setBuilderExamples] = useState<{name: string, url: string}[]>([]);
+
+  const [showHelpFor, setShowHelpFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/bigheads/examples')
+      .then(res => res.json())
+      .then(data => setBuilderExamples(data.examples || []));
+  }, []);
+
+  const getStylePreview = (styleName: string) => {
+    const match = builderExamples.find(ex => ex.name.includes(styleName.toUpperCase()) || styleName.toUpperCase().includes(ex.name));
+    if (match) return match.url;
+    // Fallback
+    return styleName.includes("HEAD ONLY") ? "/images/bigheads/sample2.png" : "/images/bigheads/sample1.png";
+  };
+
   const totalQuantity = useMemo(() => items.reduce((acc, item) => acc + item.quantity, 0), [items]);
   
   const nextMultipleOf8 = Math.ceil(totalQuantity / 8) * 8;
@@ -110,6 +119,8 @@ export default function BigHeadsPage() {
 
   const baseTotal = (totalQuantity * unitPrice) + totalStylePremium - bonusDiscount;
   
+  const [showUploadConfirmation, setShowUploadConfirmation] = useState(false);
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setConfiguringFile(e.target.files[0]);
@@ -117,6 +128,7 @@ export default function BigHeadsPage() {
       setCurrentStyle("STANDARD BIG HEAD");
       setCurrentName("");
       setLiabilityApproved(false);
+      setShowUploadConfirmation(true);
     }
   };
 
@@ -274,66 +286,83 @@ export default function BigHeadsPage() {
       <Navbar />
       
       {/* Low Quality Modal */}
+      {/* Upload Confirmation Modal */}
       <AnimatePresence>
-        {showQualityModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {showUploadConfirmation && configuringFile && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }}
-              onClick={() => setShowQualityModal(false)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-zinc-900 border border-brand-red p-8 max-w-md w-full shadow-2xl"
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-zinc-900 border border-white/10 p-8 max-w-md w-full shadow-[0_0_50px_rgba(224,40,38,0.3)]"
             >
-              <div className="flex items-center gap-4 text-brand-red mb-6">
-                <div className="w-12 h-12 bg-brand-red/10 rounded-full flex items-center justify-center">
-                  <AlertTriangle size={32} />
+              <div className="flex justify-center mb-6">
+                <div className={`w-16 h-16 ${configuringFile.size < 1024 * 1024 ? 'bg-brand-red' : 'bg-green-500'} flex items-center justify-center rounded-full shadow-lg`}>
+                  {configuringFile.size < 1024 * 1024 ? <AlertTriangle className="text-white" size={32} /> : <CheckCircle2 className="text-white" size={32} />}
                 </div>
-                <h3 className="text-2xl font-black uppercase italic">Low Quality Warning</h3>
               </div>
               
-              <div className="space-y-4 text-gray-400 mb-8">
-                <p className="font-bold text-white">This photo's resolution is lower than we recommend for a Big Head.</p>
-                <p className="text-sm">Small files (under 1MB) may appear blurry or pixelated when printed at full size.</p>
-                
-                <div className="bg-brand-red/5 p-4 border border-brand-red/20">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="mt-1" 
-                      checked={liabilityApproved} 
-                      onChange={(e) => setLiabilityApproved(e.target.checked)}
-                    />
-                    <span className="text-xs font-bold text-gray-300 uppercase leading-relaxed">
-                      I understand that iHatePictureDay will not reprint or refund due to low quality issues.
-                    </span>
-                  </label>
+              <h3 className="text-2xl font-black uppercase italic text-center mb-2 tracking-widest">
+                {configuringFile.size < 1024 * 1024 ? 'Wait! Image Quality Alert' : 'Upload Successful!'}
+              </h3>
+              <p className="text-gray-500 text-center text-[10px] uppercase font-black tracking-widest mb-8 italic">
+                {configuringFile.size < 1024 * 1024 ? 'Pro Tip: Big Heads are meant to be seen from far.' : 'Your photo is ready for configuration.'}
+              </p>
+              
+              <div className="aspect-square bg-black border border-white/5 mb-8 relative group overflow-hidden">
+                <img 
+                  src={URL.createObjectURL(configuringFile)} 
+                  alt="Preview" 
+                  className="w-full h-full object-contain"
+                />
+                <div className="absolute top-2 right-2 px-2 py-1 bg-black/80 border border-white/10 backdrop-blur-sm">
+                  <p className={`text-[8px] font-black uppercase tracking-widest ${configuringFile.size < 1024 * 1024 ? 'text-brand-red' : 'text-green-500'}`}>
+                    Resolution: {configuringFile.size < 1024 * 1024 ? 'Low Def' : 'High Def'}
+                  </p>
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              {configuringFile.size < 1024 * 1024 && (
+                <div className="bg-brand-red/5 p-4 border border-brand-red/20 mb-8">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <div className={`mt-1 shrink-0 w-4 h-4 border-2 flex items-center justify-center ${liabilityApproved ? 'bg-brand-red border-brand-red' : 'border-white/20'}`}>
+                      {liabilityApproved && <CheckCircle2 size={10} className="text-white" />}
+                      <input 
+                        type="checkbox" 
+                        className="sr-only" 
+                        checked={liabilityApproved} 
+                        onChange={(e) => setLiabilityApproved(e.target.checked)}
+                      />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 leading-tight">
+                      I understand that Big Heads are meant to be seen from a distance. Some blurriness is expected with low-quality photos, and no refunds or reprints will be issued because of it.
+                    </span>
+                  </label>
+                </div>
+              )}
+              
+              <div className="flex flex-col gap-4">
                 <Button 
-                  disabled={!liabilityApproved}
-                  className="flex-1"
-                  onClick={() => {
-                    setShowQualityModal(false);
-                    addItemToCart();
-                  }}
+                  onClick={() => setShowUploadConfirmation(false)} 
+                  disabled={configuringFile.size < 1024 * 1024 && !liabilityApproved}
+                  className="w-full py-5 text-xl font-black uppercase italic shadow-lg group disabled:opacity-50"
                 >
-                  Add Anyway
+                  <span className="flex items-center gap-3">
+                    Proceed to Configure <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                  </span>
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  className="flex-1"
-                  onClick={() => setShowQualityModal(false)}
+                <button 
+                  onClick={() => setConfiguringFile(null)} 
+                  className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors underline underline-offset-4"
                 >
-                  Choose Another
-                </Button>
+                  Cancel & Pick Another Photo
+                </button>
               </div>
             </motion.div>
           </div>
@@ -440,17 +469,26 @@ export default function BigHeadsPage() {
                                    <p className="text-[10px] font-black text-brand-red uppercase tracking-normal italic">Bulk pricing applies to your entire pack!</p>
                                  </div>
                                  <div className="flex gap-2">
-                                   <div className="bg-brand-red/10 border border-brand-red/50 px-3 py-2 text-center relative flex-1 min-w-[80px]">
-                                     <div className="absolute -top-2 -right-1 bg-brand-red text-white text-[6px] font-black px-1.5 py-0.5 uppercase italic tracking-tighter">Popular</div>
-                                     <p className="text-[8px] font-black uppercase text-gray-500 leading-none mb-0.5 tracking-widest">10+ Heads</p>
-                                     <p className="text-xl font-black text-white leading-tight">$22<span className="text-[10px] opacity-60 ml-0.5">EA</span></p>
-                                     <p className="text-[7px] font-black text-brand-red uppercase mt-0.5 leading-none">Save $3/Head</p>
+                                   <div className="bg-white/5 border border-white/10 px-3 py-4 text-center relative flex-1 min-w-[80px]">
+                                     <p className="text-[10px] font-black uppercase text-gray-500 leading-none mb-1.5 tracking-widest">1-9 Heads</p>
+                                     <p className="text-3xl font-black text-white leading-none tracking-tighter">$25<span className="text-[10px] opacity-60 ml-0.5">EA</span></p>
+                                     <p className="text-[10px] font-black text-white/40 uppercase mt-1.5 leading-none tracking-widest">Standard</p>
                                    </div>
-                                   <div className="bg-white/5 border border-white/20 px-3 py-2 text-center relative flex-1 min-w-[80px]">
-                                     <div className="absolute -top-2 -right-1 bg-white text-brand-black text-[6px] font-black px-1.5 py-0.5 uppercase italic tracking-tighter">Best Deal</div>
-                                     <p className="text-[8px] font-black uppercase text-gray-500 leading-none mb-0.5 tracking-widest">24+ Heads</p>
-                                     <p className="text-xl font-black text-white leading-tight">$18<span className="text-[10px] opacity-60 ml-0.5">EA</span></p>
-                                     <p className="text-[7px] font-black text-white/60 uppercase mt-0.5 leading-none">Save $7/Head</p>
+                                   <div className="bg-brand-red/10 border border-brand-red/50 px-3 py-4 text-center relative flex-1 min-w-[80px]">
+                                     <div className="absolute -top-2.5 right-0 left-0 flex justify-center">
+                                       <span className="bg-brand-red text-white text-[8px] font-black px-2 py-0.5 uppercase italic tracking-widest shadow-lg">Popular</span>
+                                     </div>
+                                     <p className="text-[10px] font-black uppercase text-gray-400 leading-none mb-1.5 tracking-widest">10+ Heads</p>
+                                     <p className="text-3xl font-black text-white leading-none tracking-tighter drop-shadow-[0_0_10px_rgba(224,40,38,0.3)]">$22<span className="text-[10px] opacity-60 ml-0.5">EA</span></p>
+                                     <p className="text-[10px] font-black text-brand-red uppercase mt-1.5 leading-none tracking-widest italic">Save $3/Head</p>
+                                   </div>
+                                   <div className="bg-white/5 border border-white/20 px-3 py-4 text-center relative flex-1 min-w-[80px]">
+                                     <div className="absolute -top-2.5 right-0 left-0 flex justify-center">
+                                       <span className="bg-white text-brand-black text-[8px] font-black px-2 py-0.5 uppercase italic tracking-widest shadow-lg">Best Deal</span>
+                                     </div>
+                                     <p className="text-[10px] font-black uppercase text-gray-400 leading-none mb-1.5 tracking-widest">24+ Heads</p>
+                                     <p className="text-3xl font-black text-white leading-none tracking-tighter">$18<span className="text-[10px] opacity-60 ml-0.5">EA</span></p>
+                                     <p className="text-[10px] font-black text-white/70 uppercase mt-1.5 leading-none tracking-widest italic">Save $7/Head</p>
                                    </div>
                                  </div>
                                </div>
@@ -482,21 +520,71 @@ export default function BigHeadsPage() {
                                         </div>
                                       </button>
                                       
-                                      <div className="relative group ml-2">
-                                        <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center cursor-help hover:border-brand-red hover:bg-brand-red/10 transition-all">
+                                      <div className="relative ml-2">
+                                        <button 
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowHelpFor(showHelpFor === s ? null : s);
+                                          }}
+                                          className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${showHelpFor === s ? "bg-brand-red border-brand-red text-white" : "border-white/20 text-gray-500 hover:border-brand-red hover:bg-brand-red/10"}`}
+                                        >
                                           <span className="text-xs font-black italic">?</span>
-                                        </div>
+                                        </button>
                                         
-                                        <div className="absolute right-0 bottom-full mb-4 w-64 aspect-[3/4] bg-zinc-900 border-2 border-brand-red z-[60] opacity-0 group-hover:opacity-100 pointer-events-none transition-all scale-95 group-hover:scale-100 shadow-2xl overflow-hidden">
-                                          <img 
-                                            src={s.includes("HEAD ONLY") ? "/images/bigheads/sample2.png" : "/images/bigheads/sample1.png"} 
-                                            alt={s} 
-                                            className="w-full h-full object-cover"
-                                          />
-                                          <div className="absolute bottom-0 left-0 right-0 bg-brand-red p-2">
-                                            <p className="text-[10px] font-black uppercase italic text-center text-white">{s} EXAMPLE</p>
-                                          </div>
-                                        </div>
+                                        <AnimatePresence>
+                                          {showHelpFor === s && (
+                                            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-8">
+                                              {/* Modal Backdrop */}
+                                              <motion.div 
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+                                                onClick={() => setShowHelpFor(null)}
+                                              />
+                                              
+                                              <motion.div 
+                                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                                className="relative w-full max-w-2xl max-h-[85vh] bg-zinc-900 border border-white/10 shadow-[0_0_100px_rgba(224,40,38,0.2)] flex flex-col overflow-hidden pointer-events-auto"
+                                              >
+                                                {/* Header */}
+                                                <div className="flex justify-between items-center p-4 border-b border-white/10 bg-black/20">
+                                                  <div className="space-y-0.5">
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-red">Style Preview</span>
+                                                    <h4 className="text-xl font-black uppercase italic text-white tracking-wider">{s}</h4>
+                                                  </div>
+                                                  <button 
+                                                    onClick={() => setShowHelpFor(null)} 
+                                                    className="w-10 h-10 rounded-full bg-white/5 hover:bg-brand-red text-white transition-all flex items-center justify-center group"
+                                                  >
+                                                    <X size={20} className="group-hover:rotate-90 transition-transform" />
+                                                  </button>
+                                                </div>
+
+                                                {/* Image Area */}
+                                                <div className="flex-1 min-h-0 p-6 md:p-8 flex items-center justify-center bg-black/40">
+                                                  <div className="w-full h-full relative">
+                                                    <img 
+                                                      src={getStylePreview(s)} 
+                                                      alt={s} 
+                                                      className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+                                                    />
+                                                  </div>
+                                                </div>
+
+                                                {/* Footer Info */}
+                                                <div className="p-6 bg-black/40 border-t border-white/5 text-center">
+                                                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-relaxed max-w-md mx-auto">
+                                                    {s === 'HALF BODY WITH NAME' ? 'Includes a custom name plate at the base of the cutout.' : s === 'CARTOON STYLE' ? 'A high-impact artistic filter is applied to your photo.' : 'Professional studio-grade print on high-durability backing.'}
+                                                  </p>
+                                                </div>
+                                              </motion.div>
+                                            </div>
+                                          )}
+                                        </AnimatePresence>
                                       </div>
                                     </div>
                                   ))}
@@ -542,12 +630,45 @@ export default function BigHeadsPage() {
                                 </div>
                               </div>
 
+                              {configuringFile.size < 1024 * 1024 && (
+                                <motion.div 
+                                  initial={{ opacity: 0, scale: 0.95 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  className="p-4 bg-brand-red/10 border-2 border-brand-red space-y-3"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <AlertTriangle className="text-brand-red shrink-0" size={20} />
+                                    <div>
+                                      <h4 className="text-sm font-black text-brand-red uppercase italic leading-none mb-1">Low Quality Detected</h4>
+                                      <p className="text-[9px] font-bold text-gray-400 uppercase leading-relaxed">
+                                        This image is under 1MB. For a 2ft cutout, it may appear pixelated or blurry. We recommend a high-resolution photo.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <label className="flex items-center gap-3 cursor-pointer group/check">
+                                    <div className="relative w-5 h-5 border-2 border-brand-red bg-black flex items-center justify-center">
+                                      <input 
+                                        type="checkbox" 
+                                        className="sr-only" 
+                                        checked={liabilityApproved}
+                                        onChange={(e) => setLiabilityApproved(e.target.checked)}
+                                      />
+                                      {liabilityApproved && <CheckCircle2 className="text-brand-red" size={14} />}
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-white group-hover/check:text-brand-red transition-colors">
+                                      I acknowledge and accept the print quality
+                                    </span>
+                                  </label>
+                                </motion.div>
+                              )}
+
                               <div className="flex gap-4 pt-4">
                                 <Button 
                                   onClick={() => addItemToCart()}
-                                  className="flex-1 py-4 text-lg"
+                                  disabled={configuringFile.size < 1024 * 1024 && !liabilityApproved}
+                                  className="flex-1 py-4 text-lg disabled:opacity-50 disabled:grayscale"
                                 >
-                                  Add to Cart - ${((unitPrice + (currentStyle === "HALF BODY WITH NAME" ? 1 : 0)) * currentQuantity).toFixed(2)}
+                                  {configuringFile.size < 1024 * 1024 && !liabilityApproved ? "Accept Quality to Add" : `Add to Cart - $${((unitPrice + (currentStyle === "HALF BODY WITH NAME" ? 1 : 0)) * currentQuantity).toFixed(2)}`}
                                 </Button>
                                 <Button variant="ghost" onClick={() => setConfiguringFile(null)}>Cancel</Button>
                               </div>

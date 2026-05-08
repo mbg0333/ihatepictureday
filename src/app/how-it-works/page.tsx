@@ -4,8 +4,9 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { QrCode, Camera, Layers, Bell, Eye, Truck, ArrowRight, Trophy } from "lucide-react";
+import { Camera, Layers, Bell, Eye, Truck, ArrowRight, Trophy, QrCode } from "lucide-react";
 import { useState, useEffect } from "react";
+import { DynamicTeamDemo } from "@/components/DynamicTeamDemo";
 
 const steps = [
   {
@@ -97,35 +98,67 @@ export default function HowItWorksPage() {
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className={`flex flex-col lg:flex-row items-center gap-12 ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}
+                  className={`flex flex-col ${step.id === '04' ? 'lg:flex-col gap-12 items-center' : `lg:flex-row items-center gap-12 ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}`}
                 >
-                  {/* Icon Side */}
-                  <div className="flex-1 flex justify-center lg:justify-end lg:pr-12 group">
-                    <div className={`w-32 h-32 md:w-48 md:h-48 ${step.id === '02' || step.id === '06' ? 'bg-brand-red' : 'bg-zinc-900'} flex items-center justify-center relative rotate-3 group-hover:rotate-6 transition-transform shadow-[10px_10px_0_rgba(0,0,0,0.5)]`}>
-                      <step.icon size={64} className="text-white md:size-80" />
-                      <div className="absolute -top-4 -left-4 bg-brand-red text-white font-black italic px-4 py-1 shadow-lg text-xl">
+                  {/* Text Side (Rendered first for Step 04) */}
+                  {step.id === '04' && (
+                    <div className="w-full text-center max-w-3xl mx-auto">
+                      <div className="inline-block bg-brand-red text-white font-black italic px-4 py-1 shadow-lg text-xl mb-4">
                         {step.id}
                       </div>
+                      <h3 className="text-3xl md:text-5xl font-black italic uppercase mb-6 text-brand-red leading-none">
+                        {step.title}
+                      </h3>
+                      <p className="text-lg md:text-xl text-gray-400 font-medium leading-relaxed italic">
+                        {step.description}
+                      </p>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Spacer for Line (Desktop) */}
-                  <div className="w-4 hidden lg:block" />
-
-                  {/* Text Side */}
-                  <div className="flex-1 text-center lg:text-left lg:pl-12">
-                    <h3 className="text-3xl md:text-5xl font-black italic uppercase mb-6 text-brand-red leading-none">
-                      {step.title}
-                    </h3>
-                    <p className="text-lg md:text-xl text-gray-400 font-medium leading-relaxed italic">
-                      {step.description}
-                    </p>
-                    {index < steps.length - 1 && (
-                      <div className="mt-8 flex justify-center lg:justify-start">
-                        <ArrowRight className="text-white/10 lg:rotate-0 rotate-90" size={32} />
+                  {/* Media / Icon Side */}
+                  <div className={`${step.id === '04' ? 'w-full flex justify-center' : `flex-1 flex justify-center ${index % 2 !== 0 ? 'lg:justify-start lg:pl-12' : 'lg:justify-end lg:pr-12'} group`}`}>
+                    {step.id === "04" ? (
+                      <div className="w-full max-w-5xl mx-auto">
+                        <div className="relative rotate-1 hover:rotate-0 transition-transform duration-500 shadow-[20px_20px_0_rgba(0,0,0,0.5)] z-10">
+                           <DynamicTeamDemo />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={`w-32 h-32 md:w-48 md:h-48 ${step.id === '02' || step.id === '06' ? 'bg-brand-red' : 'bg-zinc-900'} flex items-center justify-center relative rotate-3 group-hover:rotate-6 transition-transform shadow-[10px_10px_0_rgba(0,0,0,0.5)]`}>
+                        <step.icon size={64} className="text-white md:size-80" />
+                        <div className="absolute -top-4 -left-4 bg-brand-red text-white font-black italic px-4 py-1 shadow-lg text-xl">
+                          {step.id}
+                        </div>
                       </div>
                     )}
                   </div>
+
+                  {/* Spacer for Line (Desktop) */}
+                  {step.id !== '04' && <div className="w-4 hidden lg:block" />}
+
+                  {/* Text Side (For normal steps) */}
+                  {step.id !== '04' && (
+                    <div className="flex-1 text-center lg:text-left lg:pl-12">
+                      <h3 className="text-3xl md:text-5xl font-black italic uppercase mb-6 text-brand-red leading-none">
+                        {step.title}
+                      </h3>
+                      <p className="text-lg md:text-xl text-gray-400 font-medium leading-relaxed italic">
+                        {step.description}
+                      </p>
+                      {index < steps.length - 1 && (
+                        <div className="mt-8 flex justify-center lg:justify-start">
+                          <ArrowRight className="text-white/10 lg:rotate-0 rotate-90" size={32} />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Arrow below Step 04 */}
+                  {step.id === '04' && (
+                     <div className="mt-8 flex justify-center w-full">
+                       <ArrowRight className="text-white/10 rotate-90" size={32} />
+                     </div>
+                  )}
                 </motion.div>
               ))}
             </div>

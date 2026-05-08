@@ -13,6 +13,7 @@ const navLinks = [
   { name: "Sample Gallery", href: "/gallery" },
   { name: "Services", href: "/services" },
   { name: "How it Works", href: "/how-it-works" },
+  { name: "Dynamic Teams", href: "/dynamic-teams" },
   { name: "Big Heads", href: "/big-heads" },
   { name: "FAQ", href: "/faq" },
 ];

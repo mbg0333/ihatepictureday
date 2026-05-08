@@ -16,7 +16,9 @@ export default async function Home() {
   try {
     const { blobs } = await list({ prefix: 'images/hero/' });
     if (blobs.length > 0) {
-      heroImages = blobs.map(blob => blob.url);
+      heroImages = blobs
+        .filter(blob => !blob.pathname.split('/').pop()?.startsWith('HIDDEN_'))
+        .map(blob => blob.url);
     }
   } catch (e) {
     console.error("Error reading cloud hero images:", e);

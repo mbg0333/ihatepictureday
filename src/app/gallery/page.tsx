@@ -2,6 +2,7 @@
 
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Maximize2, Loader2 } from "lucide-react";
@@ -12,23 +13,33 @@ export default function GalleryPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [galleryImages, setGalleryImages] = useState<{src: string, category: string, title: string}[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [categories, setCategories] = useState(["All", "Baseball", "Football", "Softball", "Graphics"]);
 
   useEffect(() => {
     // Fetch Images
     fetch('/api/gallery/images')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Server returned an error');
+        return res.json();
+      })
       .then(data => {
         setGalleryImages(data.images || []);
-        setLoading(false);
-
+        
         // Extract unique categories from images to update filters
         if (data.images && data.images.length > 0) {
           const uniqueCats = Array.from(new Set(data.images.map((img: any) => img.category)));
           const finalCats = ["All", ...uniqueCats.filter(c => c !== "All")];
           setCategories(finalCats as string[]);
         }
+      })
+      .catch(err => {
+        console.error("Gallery fetch error:", err);
+        setError("Failed to load gallery. Please refresh the page.");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
@@ -80,33 +91,26 @@ export default function GalleryPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <AnimatePresence mode='popLayout'>
-                {filteredImages.map((img, index) => (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  key={`${img.title}-${index}`}
+              {filteredImages.map((img, index) => (
+                <div
+                  key={`${img.id}-${index}`}
                   className="relative aspect-[4/5] overflow-hidden bg-zinc-900 border border-white/5 cursor-pointer group"
                   onClick={() => setSelectedImage(img.src)}
                 >
                   <img 
                     src={img.src} 
                     alt={img.title}
+                    loading="lazy"
                     className="w-full h-full object-cover object-top opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-brand-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
                     <span className="text-brand-red text-xs font-black uppercase tracking-widest mb-1">{img.category}</span>
-                    <h3 className="text-xl font-bold uppercase italic">{img.title}</h3>
                     <div className="absolute top-4 right-4">
                       <Maximize2 size={20} className="text-white/50" />
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
             </div>
           )}
         </div>
