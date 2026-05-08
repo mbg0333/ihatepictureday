@@ -158,7 +158,7 @@ export default function GalleriesPage() {
                             <div key={i} className="flex items-center space-x-2 bg-brand-red/10 border border-brand-red/20 px-3 py-1">
                               <Tag size={12} className="text-brand-red" />
                               <span className="text-[10px] font-black uppercase tracking-widest text-brand-red">{special.label}</span>
-                              <span className="text-[10px] font-bold text-gray-500 uppercase">{special.detail}</span>
+                              <span className="text-[10px] font-bold text-gray-500 uppercase" dangerouslySetInnerHTML={{ __html: special.detail }} />
                             </div>
                           ))}
                         </div>
