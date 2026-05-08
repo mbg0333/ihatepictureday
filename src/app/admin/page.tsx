@@ -358,7 +358,29 @@ export default function AdminPage() {
                     <AnimatePresence>
                       {isAddingNew && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-4 space-y-2">
-                          <input type="text" placeholder={mode === 'event' ? "NEW-EVENT-ID" : "NEW-SPORT-ID"} value={customId} onChange={(e) => setCustomId(e.target.value.toUpperCase().replace(/\s+/g, '-'))} className="w-full bg-black border border-brand-red p-3 text-xs font-black uppercase outline-none" autoFocus />
+                          <div className="relative">
+                            <input 
+                              type="text" 
+                              placeholder={mode === 'event' ? "NEW-EVENT-ID" : "NEW-SPORT-ID"} 
+                              value={customId} 
+                              onChange={(e) => setCustomId(e.target.value.toUpperCase().replace(/\s+/g, '-'))} 
+                              onKeyDown={(e) => e.key === 'Enter' && customId && (e.preventDefault(), fileInputRef.current?.click())}
+                              className="w-full bg-black border border-brand-red p-3 pr-12 text-xs font-black uppercase outline-none focus:ring-1 focus:ring-brand-red/50" 
+                              autoFocus 
+                            />
+                            {customId && (
+                              <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-brand-red hover:bg-brand-red/10 rounded transition-all"
+                                title="Set and choose files"
+                              >
+                                <CheckCircle2 size={16} />
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">
+                            {customId ? "Hit Enter or click check to choose files" : "Type a name to begin"}
+                          </p>
                         </motion.div>
                       )}
                     </AnimatePresence>
