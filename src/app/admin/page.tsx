@@ -30,7 +30,7 @@ import { Button } from '@/components/ui/Button';
 import { activeGalleries } from '@/data/events';
 import Link from 'next/link';
 
-type UploadMode = 'event' | 'sample' | 'hero';
+type UploadMode = 'event' | 'sample' | 'hero' | 'bighead';
 
 interface FileInfo {
   name: string;

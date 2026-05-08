@@ -93,7 +93,7 @@ export default function GalleryPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredImages.map((img, index) => (
                 <div
-                  key={`${img.id}-${index}`}
+                  key={`${img.src}-${index}`}
                   className="relative aspect-[4/5] overflow-hidden bg-zinc-900 border border-white/5 cursor-pointer group"
                   onClick={() => setSelectedImage(img.src)}
                 >
