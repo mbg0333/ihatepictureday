@@ -28,12 +28,14 @@ import {
   ExternalLink,
   Tag,
   Clock,
+  CloudUpload,
   X,
   PlusCircle,
   Save
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { activeGalleries, GalleryEvent, EventSpecial } from '@/data/events';
+import { activeGalleries } from '@/data/events';
+import { GalleryEvent, EventSpecial } from '@/data/types';
 import Link from 'next/link';
 
 type UploadMode = 'event' | 'sample' | 'hero' | 'bighead' | 'dashboard';
@@ -72,6 +74,7 @@ export default function AdminPage() {
   const [editingEvent, setEditingEvent] = useState<GalleryEvent | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalOffers, setModalOffers] = useState<EventSpecial[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [armedDelete, setArmedDelete] = useState<string | null>(null);
   const [hidingPath, setHidingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -229,6 +232,27 @@ export default function AdminPage() {
     
     setIsEventModalOpen(false);
     setEditingEvent(null);
+  };
+
+  const handlePublishToCode = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/admin/save-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ events }),
+      });
+      if (res.ok) {
+        alert('✅ Success! Changes saved to source code. Run "git push" to update the live site.');
+      } else {
+        throw new Error('Failed to save to file');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('❌ Error: Could not save to code. Make sure you are running locally.');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleEditEvent = (event: GalleryEvent) => {
@@ -550,6 +574,14 @@ export default function AdminPage() {
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-black uppercase italic tracking-wider">Event Management</h2>
                   <div className="flex items-center gap-4">
+                    <button 
+                      onClick={handlePublishToCode} 
+                      disabled={isSyncing}
+                      className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 text-[10px] font-black uppercase italic tracking-widest transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isSyncing ? <Loader2 size={14} className="animate-spin" /> : <CloudUpload size={14} className="text-brand-red" />}
+                      Push Changes to Live
+                    </button>
                     <button onClick={handleAddEvent} className="bg-brand-red hover:bg-white hover:text-brand-black text-white px-4 py-2 text-[10px] font-black uppercase italic tracking-widest transition-all flex items-center gap-2">
                       <PlusCircle size={14} /> Add New Event
                     </button>
