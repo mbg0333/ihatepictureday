@@ -19,7 +19,7 @@ const detailedServices = [
     description: "Professional media day experience for travel ball and all-star teams. High-end athletic photography with custom graphics that make your roster look like pros.",
     features: ["Per Athlete Price for All Photos", "Custom Graphics", "Multiple Poses", "Team Banner Option w/ Sponsorships"],
     icon: Camera,
-    image: "/images/football.png"
+    image: "collage_allstars"
   },
 ];
 
@@ -121,26 +121,61 @@ export default function ServicesPage() {
                       <img 
                         src="/images/events/central/6U DODGERS.jpg" 
                         alt="Team Background"
-                        className="absolute inset-0 w-full h-full object-cover opacity-30 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
                       />
-                      <div className="relative z-10 w-full h-full flex items-center justify-center gap-3 p-6 sm:p-8">
+                      <div className="relative z-10 w-full h-full flex items-center justify-center gap-3 p-6 sm:p-8 translate-y-12">
                         <img 
                           src="/images/events/central/Charleigh-Spencer-12U-LadyDawgsWhite_003_2_TMP.jpg" 
-                          className="w-[30%] aspect-[3/4] object-cover rounded-xl shadow-2xl border-2 border-white/10 -rotate-6 group-hover:-rotate-12 transition-transform duration-500" 
+                          className="w-[30%] aspect-[3/4] object-cover rounded-xl shadow-2xl border-2 border-white/10 -rotate-6 translate-y-4 group-hover:-rotate-12 transition-transform duration-500" 
                           alt="Athlete"
                         />
                         <img 
                           src="/images/events/central/Reed-Gandy-12U-RedSox_004_5_TMP.jpg" 
-                          className="w-[35%] aspect-[3/4] object-cover rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-2 border-white/20 z-20 -translate-y-4 group-hover:-translate-y-8 transition-transform duration-500" 
+                          className="w-[35%] aspect-[3/4] object-cover rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] border-2 border-white/20 z-20 group-hover:-translate-y-4 transition-transform duration-500" 
                           alt="Athlete"
                         />
                         <img 
                           src="/images/events/central/Will-Gandy-6U-Dodgers_003_2_TMP.jpg" 
-                          className="w-[30%] aspect-[3/4] object-cover rounded-xl shadow-2xl border-2 border-white/10 rotate-6 group-hover:rotate-12 transition-transform duration-500" 
+                          className="w-[30%] aspect-[3/4] object-cover rounded-xl shadow-2xl border-2 border-white/10 rotate-6 translate-y-4 group-hover:rotate-12 transition-transform duration-500" 
                           alt="Athlete"
                         />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/20 to-transparent pointer-events-none" />
+                    </div>
+                  ) : service.image === "collage_allstars" ? (
+                    <div className="relative w-full h-full flex items-center justify-center bg-zinc-950">
+                      {/* Atmospheric Background */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-red/20 via-transparent to-transparent opacity-50" />
+                      <div className="absolute inset-0 opacity-[0.1]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '20px 20px' }} />
+                      
+                      <div className="relative z-10 w-full h-full flex items-center justify-center p-8">
+                        {/* Main Featured Athlete */}
+                        <div className="relative w-[60%] aspect-[3/4] group-hover:scale-105 transition-transform duration-700">
+                          <div className="absolute -inset-4 bg-brand-red/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                          <img 
+                            src="/images/events/crockett/Bowen-Ford Santa Maria-14U-HC_004_2_TMP.jpg" 
+                            className="w-full h-full object-cover rounded-lg shadow-[0_0_50px_rgba(224,40,38,0.3)] border-2 border-brand-red/30 relative z-10" 
+                            alt="All Star Athlete"
+                          />
+                          
+                          {/* Graphic Elements */}
+                          <div className="absolute -top-4 -left-4 bg-brand-red text-white font-black italic px-4 py-1 text-xs skew-x-[-12deg] z-20 shadow-lg uppercase tracking-widest">
+                            All-Star
+                          </div>
+                        </div>
+
+                        {/* Secondary Athlete Peeking */}
+                        <img 
+                          src="/images/events/lpar-baseball/Alex-Aguinaga-Prep-Tigers_004_7_TMP.jpg" 
+                          className="absolute right-10 top-1/2 -translate-y-1/2 w-[35%] aspect-[3/4] object-cover rounded-lg opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:translate-x-4 transition-all duration-700 border border-white/10" 
+                          alt="Athlete 2"
+                        />
+                        <img 
+                          src="/images/events/crockett/Braxston-Bernard Richardson-6U-BLACK_004_3_TMP.jpg" 
+                          className="absolute left-10 top-1/2 -translate-y-1/2 w-[35%] aspect-[3/4] object-cover rounded-lg opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:-translate-x-4 transition-all duration-700 border border-white/10" 
+                          alt="Athlete 3"
+                        />
+                      </div>
                     </div>
                   ) : (
                     <>

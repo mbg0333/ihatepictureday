@@ -1,12 +1,16 @@
 export interface EventSpecial {
   label: string;
   detail: string;
+  code?: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
 }
 
 export interface GalleryEvent {
   id: string;
   name: string;
-  status: "Live" | "Coming Soon" | "Archive";
+  status: "Live" | "Coming Soon" | "Archive" | "Advance Pay Available";
   accessCode: string;
   link: string;
   date: string;
@@ -26,7 +30,14 @@ export const activeGalleries: GalleryEvent[] = [
     displayDate: "04/25/2026",
     samples: [],
     specials: [
-      { label: "Free Shipping", detail: "With code <span class=\"text-white bg-brand-red px-1.5 py-0.5 rounded mx-1 shadow-[0_0_10px_rgba(224,40,38,0.5)]\">CENTRALFREE</span> (Expires 5/13/2026)" }
+      { 
+        label: "Free Shipping", 
+        detail: "With code <span class=\"text-white bg-brand-red px-1.5 py-0.5 rounded mx-1 shadow-[0_0_10px_rgba(224,40,38,0.5)]\">CENTRALFREE</span> (Expires 5/13/2026)",
+        code: "CENTRALFREE",
+        startDate: "2024-05-01",
+        endDate: "2026-05-13",
+        description: "Free shipping on all orders over $35"
+      }
     ]
   },
   {

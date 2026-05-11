@@ -18,14 +18,21 @@ export async function GET() {
         image: blob.url,
       }));
 
+    // Manually reorder: swap 1st and 4th if they exist
+    if (samples.length >= 4) {
+      const first = samples[0];
+      samples[0] = samples[3];
+      samples[3] = first;
+    }
+
     // Fallback images if no samples exist yet
     if (samples.length === 0) {
       return NextResponse.json({ 
         samples: [
-          { id: 1, title: "Standard Big Head", image: "/images/bigheads/sample1.png" },
+          { id: 1, title: "Half Body w/ Name", image: "/images/bigheads/sample2.png" },
           { id: 2, title: "Head Only Cutout", image: "/images/bigheads/sample2.png" },
           { id: 3, title: "Half Body Style", image: "/images/bigheads/sample1.png" },
-          { id: 4, title: "Half Body w/ Name", image: "/images/bigheads/sample2.png" },
+          { id: 4, title: "Standard Big Head", image: "/images/bigheads/sample1.png" },
         ] 
       });
     }

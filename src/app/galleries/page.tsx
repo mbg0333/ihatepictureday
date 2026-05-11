@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ExternalLink, Play, Sparkles, Tag, ChevronRight, Camera } from "lucide-react";
+import { ExternalLink, Play, Sparkles, Tag, ChevronRight, Camera, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { activeGalleries } from "@/data/events";
@@ -103,9 +103,20 @@ const GalleryStack = ({ eventId, initialSamples = [] }: { eventId: string, initi
 
 export default function GalleriesPage() {
   const [mounted, setMounted] = useState(false);
+  const [events, setEvents] = useState<GalleryEvent[]>(activeGalleries);
 
   useEffect(() => {
     setMounted(true);
+    
+    // Load persisted events from admin edits
+    const saved = localStorage.getItem('ihatepictureday_events');
+    if (saved) {
+      try {
+        setEvents(JSON.parse(saved));
+      } catch (err) {
+        console.error("Failed to load saved events:", err);
+      }
+    }
   }, []);
 
   return (
@@ -126,7 +137,7 @@ export default function GalleriesPage() {
               </div>
               
               <div className="grid gap-8">
-                {activeGalleries
+                {events
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((gallery) => (
                   <motion.div
@@ -154,13 +165,31 @@ export default function GalleriesPage() {
                         
                         {/* Per-Event Specials */}
                         <div className="flex flex-wrap gap-3 mb-6">
-                          {gallery.specials.map((special, i) => (
-                            <div key={i} className="flex items-center space-x-2 bg-brand-red/10 border border-brand-red/20 px-3 py-1">
-                              <Tag size={12} className="text-brand-red" />
-                              <span className="text-[10px] font-black uppercase tracking-widest text-brand-red">{special.label}</span>
-                              <span className="text-[10px] font-bold text-gray-500 uppercase" dangerouslySetInnerHTML={{ __html: special.detail }} />
-                            </div>
-                          ))}
+                          {gallery.specials
+                            .filter(s => {
+                              const today = new Date().toISOString().split('T')[0];
+                              if (s.startDate && s.startDate > today) return false;
+                              if (s.endDate && s.endDate < today) return false;
+                              return true;
+                            })
+                            .map((special, i) => (
+                              <div key={i} className="flex flex-col bg-brand-red/10 border border-brand-red/20 px-3 py-2 rounded">
+                                <div className="flex items-center space-x-2">
+                                  <Tag size={12} className="text-brand-red" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-brand-red">{special.label}</span>
+                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{special.code}</span>
+                                </div>
+                                {special.description && (
+                                  <p className="text-[9px] text-gray-500 mt-1 font-medium">{special.description}</p>
+                                )}
+                                {special.endDate && (
+                                  <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-brand-red/10 text-[8px] font-black uppercase text-gray-500">
+                                    <Clock size={8} className="text-brand-red" />
+                                    <span>Expires {new Date(special.endDate + 'T12:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                         </div>
 
                         <div className="flex items-center space-x-3 text-gray-500 font-bold uppercase text-[10px] tracking-widest my-6">

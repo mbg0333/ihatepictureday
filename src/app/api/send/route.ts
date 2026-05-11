@@ -19,6 +19,7 @@ export async function POST(req: Request) {
         <p><strong>Email:</strong> ${data.email}</p>
         <p><strong>Organization:</strong> ${data.organization}</p>
         <p><strong>Sport:</strong> ${data.sport}</p>
+        <p><strong>Inquiry Type:</strong> ${data.service}</p>
         <p><strong>Details:</strong> ${data.details}</p>
       `;
     } else if (type === 'bighead') {

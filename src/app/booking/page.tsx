@@ -5,17 +5,23 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import { Send, Calendar, Users, Trophy, Mail, Phone, MessageSquare, MapPin } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function BookingPage() {
+function BookingForm() {
+  const searchParams = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [defaultService, setDefaultService] = useState("League Picture Day");
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  const [submitting, setSubmitting] = useState(false);
+    const type = searchParams.get("type");
+    if (type === "fundraiser") {
+      setDefaultService("Big Head Fundraiser");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,6 +40,7 @@ export default function BookingPage() {
             email: data.get("email"),
             organization: data.get("organization"),
             sport: data.get("sport"),
+            service: data.get("service"),
             details: data.get("details"),
           },
         }),
@@ -129,18 +136,18 @@ export default function BookingPage() {
                   <div className="grid md:grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Full Name</label>
-                      <input name="name" required className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold placeholder:opacity-20 focus:ring-1 focus:ring-brand-red/20" placeholder="e.g. Coach Carter" />
+                      <input name="name" required className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold placeholder:text-gray-500 focus:ring-1 focus:ring-brand-red/20" placeholder="e.g. Coach Carter" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Email Address</label>
-                      <input name="email" required type="email" className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold placeholder:opacity-20 focus:ring-1 focus:ring-brand-red/20" placeholder="coach@league.com" />
+                      <input name="email" required type="email" className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold placeholder:text-gray-500 focus:ring-1 focus:ring-brand-red/20" placeholder="coach@league.com" />
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-5">
+                  <div className="grid md:grid-cols-3 gap-5">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Organization / Team</label>
-                      <input name="organization" required className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold placeholder:opacity-20 focus:ring-1 focus:ring-brand-red/20" placeholder="Lufkin All-Stars" />
+                      <input name="organization" required className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold placeholder:text-gray-500 focus:ring-1 focus:ring-brand-red/20" placeholder="Lufkin All-Stars" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Sport</label>
@@ -153,6 +160,22 @@ export default function BookingPage() {
                           <option>Softball</option>
                           <option>Other</option>
                         </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Inquiry Type</label>
+                      <div className="relative">
+                        <select 
+                          name="service" 
+                          value={defaultService}
+                          onChange={(e) => setDefaultService(e.target.value)}
+                          className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold text-white appearance-none cursor-pointer"
+                        >
+                          <option>League Picture Day</option>
+                          <option>Travel / All-Stars</option>
+                          <option>Big Head Fundraiser</option>
+                          <option>Other / General</option>
+                        </select>
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">▼</div>
                       </div>
                     </div>
@@ -160,7 +183,7 @@ export default function BookingPage() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Project Details</label>
-                    <textarea name="details" rows={2} className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold placeholder:opacity-20 focus:ring-1 focus:ring-brand-red/20 resize-none" placeholder="How many athletes? Any specific dates in mind?" />
+                    <textarea name="details" rows={2} className="w-full bg-brand-black/50 border border-white/10 px-4 py-3 text-sm focus:border-brand-red outline-none transition-all font-bold placeholder:text-gray-500 focus:ring-1 focus:ring-brand-red/20 resize-none" placeholder="How many athletes? Any specific dates in mind?" />
                   </div>
 
                   <Button disabled={submitting} type="submit" className="w-full py-4 text-base font-black uppercase tracking-widest group relative overflow-hidden shadow-[0_0_30px_rgba(224,40,38,0.2)] disabled:opacity-50 disabled:cursor-not-allowed">
@@ -183,5 +206,13 @@ export default function BookingPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-brand-black flex items-center justify-center"><div className="w-12 h-12 border-4 border-brand-red border-t-transparent rounded-full animate-spin"></div></div>}>
+      <BookingForm />
+    </Suspense>
   );
 }
