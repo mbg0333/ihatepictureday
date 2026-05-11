@@ -7,7 +7,8 @@ import Link from "next/link";
 import { ExternalLink, Play, Sparkles, Tag, ChevronRight, Camera, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { activeGalleries, GalleryEvent } from "@/data/events";
+import { activeGalleries } from "@/data/events";
+import { GalleryEvent } from "@/data/types";
 
 const samplePhotos = [
   "/images/football.png",
