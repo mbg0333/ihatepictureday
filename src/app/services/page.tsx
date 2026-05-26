@@ -1,8 +1,21 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/Button";
-import { Camera, Zap, Image as ImageIcon, Layers, MapPin, Users, Monitor, Printer } from "lucide-react";
+import { Camera, Users } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Youth Sports & League Photography Services | I Hate Picture Day",
+  description: "Modern sports pictures kids actually get excited about! Explore our East Texas photography services: 100% online proofing, zero paper forms, fast direct-to-home shipping, and dynamic team composites.",
+  keywords: ["youth sports photography services", "league picture day East Texas", "travel ball banner design", "all-star media day Lufkin", "dynamic team photos", "custom sports graphics"],
+  openGraph: {
+    title: "Youth Sports & League Photography Services | I Hate Picture Day",
+    description: "Explore our premium high-volume youth sports league picture days, travel ball sessions, custom athlete posters, and direct shipping services.",
+    type: "website",
+  },
+};
+
 
 const detailedServices = [
   {
