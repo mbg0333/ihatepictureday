@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { Camera, Mail, Phone, MapPin } from "lucide-react";
@@ -56,13 +56,15 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-white/5 pt-10 flex flex-col md:row justify-between items-center gap-4 text-xs font-bold uppercase tracking-widest text-gray-700">
-          <p>© {new Date().getFullYear()} I HATE PICTURE DAY. ALL RIGHTS RESERVED.</p>
+          <p>&copy; {new Date().getFullYear()} I HATE PICTURE DAY. ALL RIGHTS RESERVED.</p>
           <div className="flex space-x-8">
-            <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white">Terms of Service</Link>
+            <Link href="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
+            <Link href="/terms-of-service" className="hover:text-white">Terms of Service</Link>
           </div>
         </div>
       </div>
     </footer>
   );
 };
+
+

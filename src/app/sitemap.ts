@@ -1,4 +1,4 @@
-import { MetadataRoute } from 'next';
+﻿import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.ihatepictureday.com'; // Your production URL
@@ -10,6 +10,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/faq',
     '/booking',
     '/galleries',
+    '/privacy-policy',
+    '/terms-of-service',
   ];
 
   return routes.map((route) => ({

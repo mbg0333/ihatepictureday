@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { setSession, setPendingSession, verify2FACode } from '@/lib/auth';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy_for_build");
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,3 +65,4 @@ export async function DELETE() {
   await clearSession();
   return NextResponse.json({ success: true });
 }
+
