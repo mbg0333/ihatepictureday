@@ -1,0 +1,288 @@
+{
+  "updatedAt": "2026-10-16T15:10:38.137401",
+  "shopUrl": "https://orders.ihatepictureday.com",
+  "totalAthletes": 22,
+  "events": [
+    {
+      "id": "1",
+      "name": "West Lincoln Little League",
+      "status": "live",
+      "eventUrl": null,
+      "athleteCount": 0,
+      "athletes": []
+    },
+    {
+      "id": "10",
+      "name": "Lincoln Tigers Fall",
+      "status": "live",
+      "eventUrl": null,
+      "athleteCount": 0,
+      "athletes": []
+    },
+    {
+      "id": "12",
+      "name": "Spring 2026 Tigers",
+      "status": "registration",
+      "eventUrl": null,
+      "athleteCount": 6,
+      "athletes": [
+        {
+          "id": 2,
+          "firstName": "Emma",
+          "lastName": "Chang",
+          "studentName": "Emma Chang",
+          "groupName": "Tigers Soccer",
+          "identifier": "1002",
+          "accessCode": "GP-EMMA-88",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-EMMA-88"
+        },
+        {
+          "id": 3,
+          "firstName": "Jacob",
+          "lastName": "Miller",
+          "studentName": "Jacob Miller",
+          "groupName": "Tigers Soccer",
+          "identifier": "1003",
+          "accessCode": "GP-JACOB-77",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-JACOB-77"
+        },
+        {
+          "id": 1,
+          "firstName": "Lucas",
+          "lastName": "Jenkins",
+          "studentName": "Lucas Jenkins",
+          "groupName": "Tigers Soccer",
+          "identifier": "1001",
+          "accessCode": "GP-LUCAS-99",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-LUCAS-99"
+        },
+        {
+          "id": 5,
+          "firstName": "Mason",
+          "lastName": "Wilson",
+          "studentName": "Mason Wilson",
+          "groupName": "Tigers Soccer",
+          "identifier": "1005",
+          "accessCode": "GP-MASON-55",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-MASON-55"
+        },
+        {
+          "id": 6,
+          "firstName": "Noah",
+          "lastName": "Davis",
+          "studentName": "Noah Davis",
+          "groupName": "Tigers Soccer",
+          "identifier": "1006",
+          "accessCode": "GP-NOAH-44",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-NOAH-44"
+        },
+        {
+          "id": 4,
+          "firstName": "Sophia",
+          "lastName": "Taylor",
+          "studentName": "Sophia Taylor",
+          "groupName": "Tigers Soccer",
+          "identifier": "1004",
+          "accessCode": "GP-SOPHIA-66",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-SOPHIA-66"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "name": "Central Youth Baseball & Softball",
+      "status": "live",
+      "eventUrl": null,
+      "athleteCount": 8,
+      "athletes": [
+        {
+          "id": 14,
+          "firstName": "Alexander",
+          "lastName": "Smith",
+          "studentName": "Alexander Smith",
+          "groupName": "10U Yankees",
+          "identifier": "108",
+          "accessCode": "GP-ALEX-33",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-ALEX-33"
+        },
+        {
+          "id": 9,
+          "firstName": "Jacob",
+          "lastName": "Miller",
+          "studentName": "Jacob Miller",
+          "groupName": "10U Yankees",
+          "identifier": "103",
+          "accessCode": "GP-JACOB-77",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-JACOB-77"
+        },
+        {
+          "id": 7,
+          "firstName": "Lucas",
+          "lastName": "Jenkins",
+          "studentName": "Lucas Jenkins",
+          "groupName": "8U Red Sox",
+          "identifier": "101",
+          "accessCode": "GP-LUCAS-99",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-LUCAS-99"
+        },
+        {
+          "id": 12,
+          "firstName": "Mary-Jane",
+          "lastName": "Watson",
+          "studentName": "Mary-Jane Watson",
+          "groupName": "12U Softball",
+          "identifier": "106",
+          "accessCode": "GP-MARY-44",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-MARY-44"
+        },
+        {
+          "id": 8,
+          "firstName": "Michael",
+          "lastName": "Chang",
+          "studentName": "Michael Chang",
+          "groupName": "8U Red Sox",
+          "identifier": "102",
+          "accessCode": "GP-MIKE-88",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-MIKE-88"
+        },
+        {
+          "id": 13,
+          "firstName": "Noah",
+          "lastName": "Davis",
+          "studentName": "Noah Davis",
+          "groupName": "8U Red Sox",
+          "identifier": "107",
+          "accessCode": "GP-NOAH-44",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-NOAH-44"
+        },
+        {
+          "id": 11,
+          "firstName": "Sean",
+          "lastName": "O'Connor",
+          "studentName": "Sean O'Connor",
+          "groupName": "10U Yankees",
+          "identifier": "105",
+          "accessCode": "GP-SEAN-55",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-SEAN-55"
+        },
+        {
+          "id": 10,
+          "firstName": "Sophia",
+          "lastName": "Taylor",
+          "studentName": "Sophia Taylor",
+          "groupName": "12U Softball",
+          "identifier": "104",
+          "accessCode": "GP-SOPHIA-66",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-SOPHIA-66"
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "name": "Crockett Baseball 2026",
+      "status": "live",
+      "eventUrl": null,
+      "athleteCount": 4,
+      "athletes": [
+        {
+          "id": 17,
+          "firstName": "Daniel",
+          "lastName": "Hernandez",
+          "studentName": "Daniel Hernandez",
+          "groupName": "Crockett Cubs",
+          "identifier": "203",
+          "accessCode": "GP-DAN-22",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-DAN-22"
+        },
+        {
+          "id": 16,
+          "firstName": "Emma",
+          "lastName": "Chang",
+          "studentName": "Emma Chang",
+          "groupName": "Crockett Bulldogs",
+          "identifier": "202",
+          "accessCode": "GP-EMMA-88",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-EMMA-88"
+        },
+        {
+          "id": 18,
+          "firstName": "Katherine",
+          "lastName": "Johnson",
+          "studentName": "Katherine Johnson",
+          "groupName": "Crockett Cubs",
+          "identifier": "204",
+          "accessCode": "GP-KATE-11",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-KATE-11"
+        },
+        {
+          "id": 15,
+          "firstName": "Mason",
+          "lastName": "Wilson",
+          "studentName": "Mason Wilson",
+          "groupName": "Crockett Bulldogs",
+          "identifier": "201",
+          "accessCode": "GP-MASON-55",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-MASON-55"
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "name": "LPAR Baseball 2026",
+      "status": "live",
+      "eventUrl": null,
+      "athleteCount": 3,
+      "athletes": [
+        {
+          "id": 21,
+          "firstName": "Benjamin",
+          "lastName": "Clark",
+          "studentName": "Benjamin Clark",
+          "groupName": "Lufkin Braves",
+          "identifier": "303",
+          "accessCode": "GP-BEN-70",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-BEN-70"
+        },
+        {
+          "id": 20,
+          "firstName": "Samantha",
+          "lastName": "Martinez",
+          "studentName": "Samantha Martinez",
+          "groupName": "Lufkin Dodgers",
+          "identifier": "302",
+          "accessCode": "GP-SAM-80",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-SAM-80"
+        },
+        {
+          "id": 19,
+          "firstName": "William",
+          "lastName": "Anderson",
+          "studentName": "William Anderson",
+          "groupName": "Lufkin Dodgers",
+          "identifier": "301",
+          "accessCode": "GP-WILL-90",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-WILL-90"
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "name": "Lookup Test League",
+      "status": "registration",
+      "eventUrl": null,
+      "athleteCount": 1,
+      "athletes": [
+        {
+          "id": 28,
+          "firstName": "Taylor",
+          "lastName": "Swift",
+          "studentName": "Taylor Swift",
+          "groupName": "Varsity",
+          "identifier": "801",
+          "accessCode": "GP-TAYLOR-13",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-TAYLOR-13"
+        }
+      ]
+    }
+  ]
+}

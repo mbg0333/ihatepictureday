@@ -4,11 +4,13 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ExternalLink, Play, Tag, Camera, Clock } from "lucide-react";
+import { ExternalLink, Play, Tag, Camera, Clock, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { activeGalleries } from "@/data/events";
 import { GalleryEvent } from "@/data/types";
+import { PlayerLookupCard } from "@/components/PlayerLookupCard";
+import { PlayerLookupModal } from "@/components/PlayerLookupModal";
 
 const GalleryStack = ({ eventId, initialSamples = [] }: { eventId: string, initialSamples?: string[] }) => {
   const [samples, setSamples] = useState<string[]>(initialSamples || []);
@@ -96,6 +98,7 @@ const GalleryStack = ({ eventId, initialSamples = [] }: { eventId: string, initi
 
 export default function GalleriesPageClient() {
   const [events, setEvents] = useState<GalleryEvent[]>(activeGalleries);
+  const [lookupModalOpen, setLookupModalOpen] = useState(false);
 
   useEffect(() => {
     // Load live events from cloud API, fallback to localStorage
@@ -131,11 +134,20 @@ export default function GalleriesPageClient() {
             
             {/* Left Column: Active Galleries */}
             <div className="lg:col-span-2 space-y-12">
-              <div className="flex items-center space-x-4 mb-6 mt-4 lg:mt-0">
-                <div className="w-10 h-10 bg-brand-red flex items-center justify-center">
-                  <Camera className="text-white" size={20} />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 mt-4 lg:mt-0">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 bg-brand-red flex items-center justify-center">
+                    <Camera className="text-white" size={20} />
+                  </div>
+                  <h2 className="text-3xl font-black italic uppercase">Active Events</h2>
                 </div>
-                <h2 className="text-3xl font-black italic uppercase">Active Events</h2>
+                <button
+                  onClick={() => setLookupModalOpen(true)}
+                  className="inline-flex items-center space-x-2 px-4 py-2.5 bg-zinc-900 hover:bg-brand-red hover:text-white border border-brand-red/40 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer self-start sm:self-auto"
+                >
+                  <Search size={14} className="text-brand-red" />
+                  <span>Find Athlete By Name &rarr;</span>
+                </button>
               </div>
               
               <div className="grid gap-8">
@@ -248,11 +260,14 @@ export default function GalleriesPageClient() {
                 </p>
               </div>
 
-              <div className="p-8 border border-white/5 bg-zinc-950 text-center italic">
-                <p className="text-gray-500 mb-4 font-medium">Missing your access code?</p>
+              {/* Player Lookup Card */}
+              <PlayerLookupCard />
+
+              <div className="p-6 border border-white/5 bg-zinc-950 text-center italic">
+                <p className="text-gray-500 mb-2 text-xs font-medium">Need custom assistance or special ordering?</p>
                 <Link href="/booking">
-                  <span className="text-brand-red font-black uppercase tracking-widest text-sm hover:underline cursor-pointer">
-                    Contact Us
+                  <span className="text-brand-red font-black uppercase tracking-widest text-xs hover:underline cursor-pointer">
+                    Contact Maxx Directly &rarr;
                   </span>
                 </Link>
               </div>
@@ -262,6 +277,7 @@ export default function GalleriesPageClient() {
         </div>
       </section>
 
+      <PlayerLookupModal isOpen={lookupModalOpen} onClose={() => setLookupModalOpen(false)} />
       <Footer />
     </main>
   );
