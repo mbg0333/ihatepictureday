@@ -1,13 +1,15 @@
 {
-  "updatedAt": "2026-10-16T15:40:09.043685",
+  "updatedAt": "2026-10-16T17:40:56.091601",
   "shopUrl": "https://orders.ihatepictureday.com",
-  "totalAthletes": 27,
+  "totalAthletes": 28,
   "events": [
     {
       "id": "12",
       "name": "Spring 2026 Tigers",
       "status": "registration",
+      "platform": "gotphoto",
       "eventUrl": null,
+      "shopUrl": "https://orders.ihatepictureday.com",
       "athleteCount": 6,
       "athletes": [
         {
@@ -76,7 +78,9 @@
       "id": "13",
       "name": "Central Youth Baseball & Softball",
       "status": "live",
+      "platform": "gotphoto",
       "eventUrl": null,
+      "shopUrl": "https://orders.ihatepictureday.com",
       "athleteCount": 8,
       "athletes": [
         {
@@ -165,7 +169,9 @@
       "id": "14",
       "name": "Crockett Baseball 2026",
       "status": "live",
+      "platform": "gotphoto",
       "eventUrl": null,
+      "shopUrl": "https://orders.ihatepictureday.com",
       "athleteCount": 4,
       "athletes": [
         {
@@ -214,7 +220,9 @@
       "id": "15",
       "name": "LPAR Baseball 2026",
       "status": "live",
+      "platform": "gotphoto",
       "eventUrl": null,
+      "shopUrl": "https://orders.ihatepictureday.com",
       "athleteCount": 3,
       "athletes": [
         {
@@ -250,14 +258,16 @@
       ]
     },
     {
-      "id": "19",
+      "id": "21",
       "name": "Lincoln Tigers Fall",
       "status": "registration",
+      "platform": "gotphoto",
       "eventUrl": null,
+      "shopUrl": "https://orders.ihatepictureday.com",
       "athleteCount": 6,
       "athletes": [
         {
-          "id": 32,
+          "id": 38,
           "firstName": "Emma",
           "lastName": "Chang",
           "studentName": "Emma Chang",
@@ -267,7 +277,7 @@
           "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-EMMA-88"
         },
         {
-          "id": 33,
+          "id": 39,
           "firstName": "Jacob",
           "lastName": "Miller",
           "studentName": "Jacob Miller",
@@ -277,7 +287,7 @@
           "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-JACOB-77"
         },
         {
-          "id": 31,
+          "id": 37,
           "firstName": "Lucas",
           "lastName": "Jenkins",
           "studentName": "Lucas Jenkins",
@@ -287,7 +297,7 @@
           "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-LUCAS-99"
         },
         {
-          "id": 35,
+          "id": 41,
           "firstName": "Mason",
           "lastName": "Wilson",
           "studentName": "Mason Wilson",
@@ -297,7 +307,7 @@
           "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-MASON-55"
         },
         {
-          "id": 36,
+          "id": 42,
           "firstName": "Noah",
           "lastName": "Davis",
           "studentName": "Noah Davis",
@@ -307,7 +317,7 @@
           "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-NOAH-44"
         },
         {
-          "id": 34,
+          "id": 40,
           "firstName": "Sophia",
           "lastName": "Taylor",
           "studentName": "Sophia Taylor",
@@ -315,6 +325,27 @@
           "identifier": "1004",
           "accessCode": "GP-SOPHIA-66",
           "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-SOPHIA-66"
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "name": "Lookup Test League",
+      "status": "registration",
+      "platform": "gotphoto",
+      "eventUrl": null,
+      "shopUrl": "https://orders.ihatepictureday.com",
+      "athleteCount": 1,
+      "athletes": [
+        {
+          "id": 43,
+          "firstName": "Taylor",
+          "lastName": "Swift",
+          "studentName": "Taylor Swift",
+          "groupName": "Varsity",
+          "identifier": "801",
+          "accessCode": "GP-TAYLOR-13",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-TAYLOR-13"
         }
       ]
     }
