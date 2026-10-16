@@ -202,10 +202,19 @@ export default function AdminPage() {
     const saved = localStorage.getItem('ihatepictureday_events');
     if (saved) {
       try {
-        setEvents(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setEvents(parsed);
+          fetchEventThumbnails(parsed);
+        } else {
+          fetchEventThumbnails(activeGalleries);
+        }
       } catch (err) {
         console.error("Failed to load saved events:", err);
+        fetchEventThumbnails(activeGalleries);
       }
+    } else {
+      fetchEventThumbnails(activeGalleries);
     }
   }, []);
 
@@ -283,18 +292,64 @@ export default function AdminPage() {
     }
   };
 
-  const fetchEventThumbnails = async () => {
-    const thumbs: Record<string, string> = {};
-    for (const event of activeGalleries) {
-      try {
-        const res = await fetch(`/api/admin/files?type=event&id=${event.id}&_t=${Date.now()}`);
-        const data = await res.json();
-        if (data.files && data.files.length > 0) {
-          thumbs[event.id] = data.files[0].url;
-        }
-      } catch (err) {}
+  const fetchEventThumbnails = async (targetEvents?: GalleryEvent[]) => {
+    const listToFetch = (targetEvents && targetEvents.length > 0) ? targetEvents : events;
+    if (!listToFetch || listToFetch.length === 0) return;
+
+    // 1. Immediately map any events that have samples array already populated
+    const initialThumbs: Record<string, string> = {};
+    for (const event of listToFetch) {
+      if (event.samples && event.samples.length > 0) {
+        initialThumbs[event.id] = event.samples[0];
+      }
     }
-    setEventThumbnails(thumbs);
+    if (Object.keys(initialThumbs).length > 0) {
+      setEventThumbnails(prev => ({ ...initialThumbs, ...prev }));
+    }
+
+    // 2. Fetch images in parallel for all events
+    try {
+      const results = await Promise.allSettled(
+        listToFetch.map(async (event) => {
+          // A. Try /api/galleries/${event.id}/images (public endpoint that powers the live website)
+          try {
+            const res = await fetch(`/api/galleries/${event.id}/images?_t=${Date.now()}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0 && data[0]?.url) {
+                return { id: event.id, url: data[0].url };
+              }
+            }
+          } catch (e) {}
+
+          // B. Fallback to /api/admin/files
+          try {
+            const adminRes = await fetch(`/api/admin/files?type=event&id=${event.id}&_t=${Date.now()}`);
+            if (adminRes.ok) {
+              const adminData = await adminRes.json();
+              if (adminData.files && adminData.files.length > 0 && adminData.files[0]?.url) {
+                return { id: event.id, url: adminData.files[0].url };
+              }
+            }
+          } catch (e) {}
+
+          return null;
+        })
+      );
+
+      const newThumbs: Record<string, string> = {};
+      results.forEach((res) => {
+        if (res.status === 'fulfilled' && res.value) {
+          newThumbs[res.value.id] = res.value.url;
+        }
+      });
+
+      if (Object.keys(newThumbs).length > 0) {
+        setEventThumbnails(prev => ({ ...prev, ...newThumbs }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch event thumbnails:', err);
+    }
   };
 
   const handleSaveEvent = (eventData: GalleryEvent) => {
@@ -353,9 +408,9 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (isAuthenticated && mode === 'dashboard') {
-      fetchEventThumbnails();
+      fetchEventThumbnails(events);
     }
-  }, [isAuthenticated, mode]);
+  }, [isAuthenticated, mode, events.length]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -633,7 +688,7 @@ export default function AdminPage() {
                     </AnimatePresence>
                     
                     {mode === 'event' ? (
-                      activeGalleries.map((gallery) => (
+                      events.map((gallery) => (
                         <button key={gallery.id} onClick={() => { setSelectedGallery(gallery.id); setIsAddingNew(false); }} className={`w-full text-left p-4 border transition-all ${!isAddingNew && selectedGallery === gallery.id ? "border-brand-red bg-brand-red/10 text-white translate-x-2" : "border-white/5 bg-black/20 text-gray-500 hover:border-white/20"}`}>
                           <p className="text-[10px] font-black uppercase truncate leading-none">{gallery.name}</p>
                         </button>
@@ -839,7 +894,14 @@ export default function AdminPage() {
               <div className="space-y-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-black uppercase italic tracking-wider">Event Management</h2>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => fetchEventThumbnails(events)} 
+                      className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 text-[10px] font-black uppercase italic tracking-widest transition-all flex items-center gap-1.5"
+                      title="Refresh Event Thumbnails"
+                    >
+                      <RefreshCw size={14} className="text-brand-red" /> Refresh
+                    </button>
                     <button 
                       onClick={handlePublishToCode} 
                       disabled={isSyncing}
@@ -875,8 +937,18 @@ export default function AdminPage() {
                       >
                         {/* Thumbnail */}
                         <div className="w-full md:w-48 aspect-square md:aspect-auto bg-black relative shrink-0">
-                          {eventThumbnails[event.id] ? (
-                            <img src={eventThumbnails[event.id]} alt={event.name} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                          {eventThumbnails[event.id] || (event.samples && event.samples.length > 0) ? (
+                            <img 
+                              src={eventThumbnails[event.id] || event.samples[0]} 
+                              alt={event.name} 
+                              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
+                              onError={(e) => {
+                                // Fallback to samples if loaded thumbnail fails
+                                if (event.samples && event.samples.length > 0 && e.currentTarget.src !== event.samples[0]) {
+                                  e.currentTarget.src = event.samples[0];
+                                }
+                              }}
+                            />
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-zinc-800">
                               <ImageIcon size={32} />
