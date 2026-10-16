@@ -1,5 +1,7 @@
 'use client';
 
+import QRCode from 'qrcode';
+
 import React, { useState, useRef, useEffect } from 'react';
 import { upload } from '@vercel/blob/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,7 +38,10 @@ import {
   Download,
   Search,
   CheckSquare,
-  FileSpreadsheet
+  FileSpreadsheet,
+  QrCode,
+  Copy,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { activeGalleries } from '@/data/events';
@@ -108,6 +113,42 @@ export default function AdminPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [events, setEvents] = useState<GalleryEvent[]>(activeGalleries);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [qrModalEvent, setQrModalEvent] = useState<GalleryEvent | null>(null);
+  const [qrType, setQrType] = useState<'optin' | 'gallery'>('optin');
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [copiedUrl, setCopiedUrl] = useState(false);
+
+  const openQrModal = async (event: GalleryEvent, type: 'optin' | 'gallery' = 'optin') => {
+    setQrModalEvent(event);
+    setQrType(type);
+    setCopiedUrl(false);
+    const targetUrl = type === 'optin' 
+      ? (event.id === 'general' ? 'https://www.ihatepictureday.com/opt-in' : `https://www.ihatepictureday.com/opt-in?event=${event.id}`)
+      : event.link;
+    
+    try {
+      const url = await QRCode.toDataURL(targetUrl, {
+        width: 600,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' }
+      });
+      setQrDataUrl(url);
+    } catch (err) {
+      console.error('Failed to generate QR code', err);
+    }
+  };
+
+  useEffect(() => {
+    if (qrModalEvent) {
+      const targetUrl = qrType === 'optin'
+        ? (qrModalEvent.id === 'general' ? 'https://www.ihatepictureday.com/opt-in' : `https://www.ihatepictureday.com/opt-in?event=${qrModalEvent.id}`)
+        : qrModalEvent.link;
+      QRCode.toDataURL(targetUrl, { width: 600, margin: 2, color: { dark: '#000000', light: '#ffffff' } })
+        .then(setQrDataUrl)
+        .catch(console.error);
+    }
+  }, [qrModalEvent, qrType]);
+
   const [editingEvent, setEditingEvent] = useState<GalleryEvent | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalOffers, setModalOffers] = useState<EventSpecial[]>([]);
@@ -304,13 +345,13 @@ export default function AdminPage() {
     setIsEventModalOpen(true);
   };
 
-  useEffect(() => {
-      useEffect(() => {
+    useEffect(() => {
     if (isAuthenticated && mode === 'optins') {
       fetchOptIns();
     }
   }, [isAuthenticated, mode]);
 
+  useEffect(() => {
     if (isAuthenticated && mode === 'dashboard') {
       fetchEventThumbnails();
     }
@@ -624,6 +665,24 @@ export default function AdminPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={() => openQrModal({
+                        id: 'general',
+                        name: 'General Picture Day Sign-Up',
+                        status: 'Live',
+                        accessCode: 'SIGN-UP',
+                        date: new Date().toISOString(),
+                        displayDate: 'All Season',
+                        link: 'https://www.ihatepictureday.com/opt-in',
+                        samples: [],
+                        specials: [],
+                        optInActive: true
+                      }, 'optin')}
+                      className="bg-white/5 border border-white/10 hover:border-brand-red hover:bg-white/10 text-white px-3 py-2.5 text-[10px] font-black uppercase italic tracking-widest transition-all flex items-center gap-1.5"
+                      title="General Sign-Up Form QR Code"
+                    >
+                      <QrCode size={14} className="text-brand-red" /> Form QR Code
+                    </button>
                     <a
                       href="/api/opt-in?format=csv"
                       download
@@ -862,6 +921,13 @@ export default function AdminPage() {
                                   >
                                     <ExternalLink size={14} />
                                   </a>
+                                  <button
+                                    onClick={() => openQrModal(event)}
+                                    className="p-2.5 bg-white/5 border border-white/10 hover:border-brand-red text-gray-300 hover:text-white transition-all"
+                                    title="Pre-Generated QR Code"
+                                  >
+                                    <QrCode size={14} />
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -905,13 +971,22 @@ export default function AdminPage() {
                             </div>
                           </div>
                           
-                          <div className="mt-6 pt-4 border-t border-white/5 flex justify-end gap-3">
-                            <button onClick={() => handleEditEvent(event)} className="px-4 py-2 bg-white/5 hover:bg-white hover:text-brand-black text-white text-[9px] font-black uppercase italic tracking-widest transition-all">
-                              Edit Event Details
+                          <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap justify-between items-center gap-3">
+                            <button
+                              onClick={() => openQrModal(event)}
+                              className="px-4 py-2 bg-brand-red/10 border border-brand-red/40 hover:bg-brand-red text-brand-red hover:text-white text-[9px] font-black uppercase italic tracking-widest transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(224,40,38,0.15)]"
+                              title="Pre-Generated QR Code"
+                            >
+                              <QrCode size={13} /> Pre-Generated QR Code
                             </button>
-                            <button onClick={() => { setMode('event'); setSelectedGallery(event.id); }} className="px-4 py-2 border border-brand-red/30 hover:bg-brand-red text-white text-[9px] font-black uppercase italic tracking-widest transition-all">
-                              Manage Gallery Images
-                            </button>
+                            <div className="flex gap-3">
+                              <button onClick={() => handleEditEvent(event)} className="px-4 py-2 bg-white/5 hover:bg-white hover:text-brand-black text-white text-[9px] font-black uppercase italic tracking-widest transition-all">
+                                Edit Event Details
+                              </button>
+                              <button onClick={() => { setMode('event'); setSelectedGallery(event.id); }} className="px-4 py-2 border border-brand-red/30 hover:bg-brand-red text-white text-[9px] font-black uppercase italic tracking-widest transition-all">
+                                Manage Gallery Images
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </motion.div>
@@ -1097,6 +1172,166 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+            {/* QR Code Modal */}
+      <AnimatePresence>
+        {qrModalEvent && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setQrModalEvent(null)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-zinc-900 border border-white/10 shadow-2xl overflow-hidden rounded-xl"
+            >
+              <div className="bg-brand-red px-6 py-4 flex justify-between items-center">
+                <div className="flex items-center gap-2 text-white">
+                  <QrCode size={20} />
+                  <h2 className="text-base font-black uppercase italic tracking-widest">
+                    Pre-Generated QR Code
+                  </h2>
+                </div>
+                <button onClick={() => setQrModalEvent(null)} className="text-white/60 hover:text-white transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 md:p-8 space-y-6">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-brand-red tracking-widest block mb-1">
+                    {qrModalEvent.name}
+                  </span>
+                  <h3 className="text-xl font-black uppercase italic text-white">
+                    Scan Directly to {qrType === 'optin' ? 'Picture Day Registration' : 'PhotoDay Gallery'}
+                  </h3>
+                </div>
+
+                {/* Tab selector between Opt-In and Gallery */}
+                <div className="grid grid-cols-2 bg-black/60 p-1 rounded-lg border border-white/10 gap-1">
+                  <button
+                    onClick={() => setQrType('optin')}
+                    className={`py-2 text-[10px] font-black uppercase tracking-wider rounded transition-all ${
+                      qrType === 'optin'
+                        ? 'bg-brand-red text-white shadow-md'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    1. Picture Day Sign-Up (Opt-In)
+                  </button>
+                  <button
+                    onClick={() => setQrType('gallery')}
+                    className={`py-2 text-[10px] font-black uppercase tracking-wider rounded transition-all ${
+                      qrType === 'gallery'
+                        ? 'bg-brand-red text-white shadow-md'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    2. Live Photo Gallery
+                  </button>
+                </div>
+
+                {/* QR Code Graphic Display */}
+                <div className="flex flex-col items-center justify-center p-6 bg-white rounded-xl shadow-inner">
+                  {qrDataUrl ? (
+                    <img 
+                      src={qrDataUrl} 
+                      alt={`QR code for ${qrModalEvent.name}`} 
+                      className="w-56 h-56 object-contain"
+                    />
+                  ) : (
+                    <div className="w-56 h-56 flex items-center justify-center text-gray-400">
+                      <Loader2 className="animate-spin text-brand-red" size={32} />
+                    </div>
+                  )}
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-2">
+                    {qrType === 'optin' ? 'Parents scan to register mobile number' : `Access Code: ${qrModalEvent.accessCode}`}
+                  </p>
+                </div>
+
+                {/* Target URL with Copy Button */}
+                <div className="space-y-1.5">
+                  <span className="text-[9px] font-black uppercase text-gray-500 tracking-widest block">
+                    Target Web Destination:
+                  </span>
+                  <div className="flex items-center gap-2 bg-black border border-white/10 p-2.5 rounded-lg">
+                    <span className="text-xs text-gray-300 font-mono truncate flex-1 select-all">
+                      {qrType === 'optin'
+                        ? `https://www.ihatepictureday.com/opt-in?event=${qrModalEvent.id}`
+                        : qrModalEvent.link}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const target = qrType === 'optin'
+                          ? `https://www.ihatepictureday.com/opt-in?event=${qrModalEvent.id}`
+                          : qrModalEvent.link;
+                        navigator.clipboard.writeText(target);
+                        setCopiedUrl(true);
+                        setTimeout(() => setCopiedUrl(false), 2000);
+                      }}
+                      className="text-xs font-bold uppercase text-brand-red hover:text-white transition-colors flex items-center gap-1 shrink-0 px-2 py-1 bg-white/5 rounded"
+                    >
+                      {copiedUrl ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+                      {copiedUrl ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Download Actions */}
+                <div className="flex items-center gap-3 pt-2">
+                  <a
+                    href={qrDataUrl}
+                    download={`ihpd-qr-${qrModalEvent.id}-${qrType}.png`}
+                    className="flex-1 bg-brand-red hover:bg-red-700 text-white font-black italic uppercase text-xs tracking-wider py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(224,40,38,0.35)]"
+                  >
+                    <Download size={14} /> Download High-Res PNG
+                  </a>
+                  <button
+                    onClick={() => {
+                      const printWindow = window.open('', '_blank');
+                      if (printWindow) {
+                        const targetUrl = qrType === 'optin'
+                          ? `https://www.ihatepictureday.com/opt-in?event=${qrModalEvent.id}`
+                          : qrModalEvent.link;
+                        printWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>QR Code - ${qrModalEvent.name}</title>
+                              <style>
+                                body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+                                h1 { font-size: 28px; text-transform: uppercase; margin-bottom: 4px; }
+                                p { font-size: 16px; color: #555; margin-bottom: 24px; }
+                                img { width: 340px; height: 340px; }
+                                .url { font-family: monospace; font-size: 14px; margin-top: 16px; color: #222; }
+                              </style>
+                            </head>
+                            <body>
+                              <h1>${qrModalEvent.name}</h1>
+                              <p>${qrType === 'optin' ? 'Scan to register your mobile number for picture day gallery alerts!' : `Scan to view photo gallery (Access Code: ${qrModalEvent.accessCode})`}</p>
+                              <img src="${qrDataUrl}" />
+                              <div class="url">${targetUrl}</div>
+                              <script>window.onload = function() { window.print(); }<\/script>
+                            </body>
+                          </html>
+                        `);
+                        printWindow.document.close();
+                      }
+                    }}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase text-xs tracking-wider py-3 px-4 rounded-lg transition-all"
+                  >
+                    Print Flyer
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Event Edit/Add Modal */}
       <AnimatePresence>
