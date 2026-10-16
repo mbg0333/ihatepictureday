@@ -1,24 +1,8 @@
 {
-  "updatedAt": "2026-10-16T15:10:38.137401",
+  "updatedAt": "2026-10-16T15:40:09.043685",
   "shopUrl": "https://orders.ihatepictureday.com",
-  "totalAthletes": 22,
+  "totalAthletes": 27,
   "events": [
-    {
-      "id": "1",
-      "name": "West Lincoln Little League",
-      "status": "live",
-      "eventUrl": null,
-      "athleteCount": 0,
-      "athletes": []
-    },
-    {
-      "id": "10",
-      "name": "Lincoln Tigers Fall",
-      "status": "live",
-      "eventUrl": null,
-      "athleteCount": 0,
-      "athletes": []
-    },
     {
       "id": "12",
       "name": "Spring 2026 Tigers",
@@ -266,21 +250,71 @@
       ]
     },
     {
-      "id": "16",
-      "name": "Lookup Test League",
+      "id": "19",
+      "name": "Lincoln Tigers Fall",
       "status": "registration",
       "eventUrl": null,
-      "athleteCount": 1,
+      "athleteCount": 6,
       "athletes": [
         {
-          "id": 28,
-          "firstName": "Taylor",
-          "lastName": "Swift",
-          "studentName": "Taylor Swift",
-          "groupName": "Varsity",
-          "identifier": "801",
-          "accessCode": "GP-TAYLOR-13",
-          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-TAYLOR-13"
+          "id": 32,
+          "firstName": "Emma",
+          "lastName": "Chang",
+          "studentName": "Emma Chang",
+          "groupName": "Tigers Soccer",
+          "identifier": "1002",
+          "accessCode": "GP-EMMA-88",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-EMMA-88"
+        },
+        {
+          "id": 33,
+          "firstName": "Jacob",
+          "lastName": "Miller",
+          "studentName": "Jacob Miller",
+          "groupName": "Tigers Soccer",
+          "identifier": "1003",
+          "accessCode": "GP-JACOB-77",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-JACOB-77"
+        },
+        {
+          "id": 31,
+          "firstName": "Lucas",
+          "lastName": "Jenkins",
+          "studentName": "Lucas Jenkins",
+          "groupName": "Tigers Soccer",
+          "identifier": "1001",
+          "accessCode": "GP-LUCAS-99",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-LUCAS-99"
+        },
+        {
+          "id": 35,
+          "firstName": "Mason",
+          "lastName": "Wilson",
+          "studentName": "Mason Wilson",
+          "groupName": "Tigers Soccer",
+          "identifier": "1005",
+          "accessCode": "GP-MASON-55",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-MASON-55"
+        },
+        {
+          "id": 36,
+          "firstName": "Noah",
+          "lastName": "Davis",
+          "studentName": "Noah Davis",
+          "groupName": "Tigers Soccer",
+          "identifier": "1006",
+          "accessCode": "GP-NOAH-44",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-NOAH-44"
+        },
+        {
+          "id": 34,
+          "firstName": "Sophia",
+          "lastName": "Taylor",
+          "studentName": "Sophia Taylor",
+          "groupName": "Tigers Soccer",
+          "identifier": "1004",
+          "accessCode": "GP-SOPHIA-66",
+          "galleryUrl": "https://orders.ihatepictureday.com/login?access_code=GP-SOPHIA-66"
         }
       ]
     }

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { searchAthletes, AthleteRecord } from '@/lib/lookupEngine';
-import { activeGalleries } from '@/data/events';
+import { getEvents } from '@/lib/events';
 
 const DATA_FILE_PATH = path.join(process.cwd(), 'src', 'data', 'player-lookup.json');
 
@@ -11,37 +11,61 @@ async function loadRosterData() {
     const content = await fs.readFile(DATA_FILE_PATH, 'utf8');
     return JSON.parse(content);
   } catch (err) {
-    console.warn('Could not read player-lookup.json fallback, using activeGalleries default codes');
     return { events: [] };
   }
 }
 
 export async function GET() {
-  const data = await loadRosterData();
-  const eventList = (data.events || []).map((e: any) => ({
-    id: e.id,
-    name: e.name,
-    athleteCount: e.athleteCount || (e.athletes ? e.athletes.length : 0),
-    status: e.status || 'live'
-  }));
+  const activeEvents = await getEvents();
+  const rosterData = await loadRosterData();
+  const rosterEvents = rosterData.events || [];
 
-  // Also include activeGalleries if not already in roster list
-  const existingNames = new Set(eventList.map((e: any) => e.name.toLowerCase()));
-  for (const g of activeGalleries) {
-    if (!existingNames.has(g.name.toLowerCase())) {
-      eventList.push({
-        id: g.id,
-        name: g.name,
-        athleteCount: 0,
-        status: g.status
+  const cleanEvents: Array<{ id: string; name: string; athleteCount: number; status: string }> = [];
+  const seenNames = new Set<string>();
+
+  // 1. Prioritize active, live website events
+  for (const g of activeEvents) {
+    if (g.status === 'Archive') continue;
+    const norm = g.name.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+    if (seenNames.has(norm)) continue;
+    seenNames.add(norm);
+
+    const rosterMatch = rosterEvents.find((r: any) => {
+      const rNorm = (r.name || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+      return rNorm === norm || String(r.id) === String(g.id);
+    });
+
+    cleanEvents.push({
+      id: g.id,
+      name: g.name,
+      athleteCount: rosterMatch?.athleteCount || (rosterMatch?.athletes ? rosterMatch.athletes.length : 0),
+      status: g.status
+    });
+  }
+
+  // 2. Add published jobs that have real athletes and are not test jobs
+  for (const r of rosterEvents) {
+    const athletesCount = r.athleteCount || (r.athletes ? r.athletes.length : 0);
+    if (athletesCount === 0) continue;
+    const rName = (r.name || '').trim();
+    if (rName.toLowerCase().includes('test')) continue;
+
+    const norm = rName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!seenNames.has(norm)) {
+      seenNames.add(norm);
+      cleanEvents.push({
+        id: String(r.id),
+        name: rName,
+        athleteCount: athletesCount,
+        status: r.status || 'live'
       });
     }
   }
 
   return NextResponse.json({
     success: true,
-    events: eventList,
-    totalEvents: eventList.length
+    events: cleanEvents,
+    totalEvents: cleanEvents.length
   });
 }
 
@@ -63,7 +87,6 @@ export async function POST(req: Request) {
     const data = await loadRosterData();
     let candidateAthletes: AthleteRecord[] = [];
 
-    // Filter by event if selected
     const events = data.events || [];
     let targetEvents = events;
 
@@ -85,7 +108,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Collect all athletes from targeted events
     for (const evt of targetEvents) {
       if (evt.athletes && Array.isArray(evt.athletes)) {
         for (const a of evt.athletes) {
@@ -99,7 +121,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Perform smart fuzzy + nickname search
     const matches = searchAthletes(candidateAthletes, queryFirst, queryLast, 0.70);
 
     return NextResponse.json({

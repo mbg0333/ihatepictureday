@@ -14,7 +14,9 @@ import {
   Camera,
   ChevronRight,
   ShieldCheck,
-  Send
+  Send,
+  HelpCircle,
+  CheckCircle2
 } from "lucide-react";
 import { LookupMatch } from "@/lib/lookupEngine";
 
@@ -40,16 +42,26 @@ export function PlayerLookupModal({
   const [matches, setMatches] = useState<LookupMatch[]>([]);
   const [error, setError] = useState("");
 
-  // Claim phone state per match
   const [phoneInputs, setPhoneInputs] = useState<Record<string, string>>({});
   const [claimStatus, setClaimStatus] = useState<Record<string, { loading: boolean; success: boolean; msg: string }>>({});
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  // Missing athlete recovery form states
+  const [missingAthleteName, setMissingAthleteName] = useState("");
+  const [missingTeamName, setMissingTeamName] = useState("");
+  const [missingAge, setMissingAge] = useState("");
+  const [missingParentName, setMissingParentName] = useState("");
+  const [missingParentEmail, setMissingParentEmail] = useState("");
+  const [missingParentPhone, setMissingParentPhone] = useState("");
+  const [missingNotes, setMissingNotes] = useState("");
+  const [missingSubmitting, setMissingSubmitting] = useState(false);
+  const [missingSubmitted, setMissingSubmitted] = useState(false);
+  const [missingError, setMissingError] = useState("");
 
   useEffect(() => {
     if (initialEventId) setSelectedEventId(initialEventId);
   }, [initialEventId]);
 
-  // Load available events
   useEffect(() => {
     if (!isOpen) return;
     fetch("/api/lookup")
@@ -65,6 +77,12 @@ export function PlayerLookupModal({
       .catch((err) => console.error("Failed to load events for lookup:", err));
   }, [isOpen]);
 
+  const getSelectedEventName = () => {
+    if (!selectedEventId || selectedEventId === "all") return "Youth Sports Picture Day";
+    const found = events.find((e) => String(e.id) === String(selectedEventId));
+    return found ? found.name : "Youth Sports Picture Day";
+  };
+
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!firstName.trim() && !lastName.trim()) {
@@ -76,6 +94,9 @@ export function PlayerLookupModal({
     setLoading(true);
     setHasSearched(true);
     setMatches([]);
+    setMissingSubmitted(false);
+    setMissingError("");
+    setMissingAthleteName(`${firstName.trim()} ${lastName.trim()}`.trim());
 
     try {
       const res = await fetch("/api/lookup", {
@@ -93,7 +114,7 @@ export function PlayerLookupModal({
       } else {
         setError(data.error || "Lookup failed. Please try again.");
       }
-    } catch (err: any) {
+    } catch {
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -148,6 +169,49 @@ export function PlayerLookupModal({
     }
   };
 
+  const handleMissingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!missingParentPhone.trim() || !missingParentEmail.trim()) {
+      setMissingError("Please provide your phone number and email address.");
+      return;
+    }
+    if (!missingTeamName.trim() || !missingAge.trim()) {
+      setMissingError("Please provide your athlete's team name and age/division.");
+      return;
+    }
+
+    setMissingSubmitting(true);
+    setMissingError("");
+
+    try {
+      const res = await fetch("/api/lookup/missing-athlete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          athleteName: missingAthleteName.trim() || `${firstName.trim()} ${lastName.trim()}`,
+          eventName: getSelectedEventName(),
+          teamName: missingTeamName.trim(),
+          age: missingAge.trim(),
+          parentName: missingParentName.trim(),
+          parentEmail: missingParentEmail.trim(),
+          parentPhone: missingParentPhone.trim(),
+          notes: missingNotes.trim()
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setMissingSubmitted(true);
+      } else {
+        setMissingError(data.error || "Failed to submit request. Please try again.");
+      }
+    } catch {
+      setMissingError("Network error. Please try again.");
+    } finally {
+      setMissingSubmitting(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -158,18 +222,16 @@ export function PlayerLookupModal({
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="relative w-full max-w-2xl bg-zinc-950 border border-brand-red/40 shadow-2xl p-6 md:p-8 my-8 text-white max-h-[90vh] overflow-y-auto"
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-gray-400 hover:text-white p-2 transition-colors"
+          className="absolute top-5 right-5 text-gray-400 hover:text-white p-2 transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X size={22} />
         </button>
 
-        {/* Header */}
         <div className="flex items-center space-x-3 mb-2">
-          <div className="w-10 h-10 bg-brand-red flex items-center justify-center">
+          <div className="w-10 h-10 bg-brand-red flex items-center justify-center shrink-0">
             <Search className="text-white" size={20} />
           </div>
           <div>
@@ -177,12 +239,11 @@ export function PlayerLookupModal({
               Player / Subject <span className="text-brand-red">Lookup</span>
             </h2>
             <p className="text-xs text-gray-400">
-              Find your athlete's private gallery and GotPhoto access code in seconds.
+              Find your athlete&apos;s private gallery and GotPhoto access code in seconds.
             </p>
           </div>
         </div>
 
-        {/* Lookup Form */}
         <form onSubmit={handleSearch} className="space-y-4 my-6">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
@@ -231,12 +292,12 @@ export function PlayerLookupModal({
 
           <div className="flex items-center justify-between pt-2">
             <span className="text-[11px] text-gray-500 italic">
-              ⚡ Flexible search handles nicknames (Mike / Michael) and minor spelling typos.
+              ⚡ Flexible search handles nicknames (Mike &rarr; Michael) and minor spelling typos.
             </span>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-brand-red hover:bg-white hover:text-brand-red text-white font-black uppercase italic tracking-wider text-sm transition-all flex items-center space-x-2 shrink-0 disabled:opacity-50"
+              className="px-6 py-3 bg-brand-red hover:bg-white hover:text-brand-red text-white font-black uppercase italic tracking-wider text-sm transition-all flex items-center space-x-2 shrink-0 disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <span>Searching...</span>
@@ -261,18 +322,163 @@ export function PlayerLookupModal({
         {hasSearched && !loading && (
           <div className="mt-6 border-t border-white/10 pt-6 space-y-4">
             {matches.length === 0 ? (
-              <div className="text-center py-8 bg-zinc-900/60 border border-white/5 p-6">
-                <p className="text-lg font-black uppercase text-gray-300 mb-1">No Matches Found</p>
-                <p className="text-xs text-gray-400 max-w-md mx-auto mb-4">
-                  We couldn't find an athlete matching &ldquo;{firstName} {lastName}&rdquo; in this event.
-                  Try searching with just the first name or last name, or check for typos.
-                </p>
-                <a
-                  href="/booking"
-                  className="inline-block text-xs font-bold text-brand-red uppercase tracking-wider hover:underline"
-                >
-                  Need Help? Contact Maxx Directly &rarr;
-                </a>
+              /* INLINE MISSING ATHLETE ASSISTANCE FORM */
+              <div className="bg-zinc-900/90 border border-brand-red/40 p-5 md:p-6">
+                {!missingSubmitted ? (
+                  <div>
+                    <div className="flex items-start space-x-3 mb-4">
+                      <div className="w-8 h-8 bg-brand-red/20 border border-brand-red/40 flex items-center justify-center shrink-0 mt-0.5">
+                        <HelpCircle className="text-brand-red" size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black italic uppercase tracking-tight text-white">
+                          Can&apos;t Find Your Athlete? Let&apos;s Locate Your Gallery!
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">
+                          We couldn&apos;t find &ldquo;{firstName} {lastName}&rdquo; in {getSelectedEventName()}. Fill in your team & contact details below and Maxx will find your photos and text/email your private link!
+                        </p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleMissingSubmit} className="space-y-3 mt-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                            Athlete Name <span className="text-brand-red">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={missingAthleteName}
+                            onChange={(e) => setMissingAthleteName(e.target.value)}
+                            placeholder="Full athlete name"
+                            className="w-full bg-black border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-red transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                            Team Name <span className="text-brand-red">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={missingTeamName}
+                            onChange={(e) => setMissingTeamName(e.target.value)}
+                            placeholder="e.g. 8U Red Sox, Tigers, Varsity"
+                            className="w-full bg-black border border-white/10 px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-brand-red transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                            Age / Division <span className="text-brand-red">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={missingAge}
+                            onChange={(e) => setMissingAge(e.target.value)}
+                            placeholder="e.g. 8U, 10U, High School"
+                            className="w-full bg-black border border-white/10 px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-brand-red transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                            Parent Name
+                          </label>
+                          <input
+                            type="text"
+                            value={missingParentName}
+                            onChange={(e) => setMissingParentName(e.target.value)}
+                            placeholder="Your name"
+                            className="w-full bg-black border border-white/10 px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-brand-red transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                            Parent Email <span className="text-brand-red">*</span>
+                          </label>
+                          <input
+                            type="email"
+                            required
+                            value={missingParentEmail}
+                            onChange={(e) => setMissingParentEmail(e.target.value)}
+                            placeholder="name@example.com"
+                            className="w-full bg-black border border-white/10 px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-brand-red transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                            Parent Cell Phone <span className="text-brand-red">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            required
+                            value={missingParentPhone}
+                            onChange={(e) => setMissingParentPhone(e.target.value)}
+                            placeholder="(936) 555-0142"
+                            className="w-full bg-black border border-white/10 px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-brand-red transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                          Jersey # or Helpful Notes (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={missingNotes}
+                          onChange={(e) => setMissingNotes(e.target.value)}
+                          placeholder="e.g. Jersey #12, missed photo day makeup"
+                          className="w-full bg-black border border-white/10 px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-brand-red transition-colors"
+                        />
+                      </div>
+
+                      {missingError && (
+                        <div className="p-2.5 bg-red-950/60 border border-red-500/50 text-red-200 text-xs flex items-center space-x-2">
+                          <AlertCircle size={14} className="text-brand-red shrink-0" />
+                          <span>{missingError}</span>
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={missingSubmitting}
+                        className="w-full py-3.5 bg-brand-red hover:bg-white hover:text-brand-red text-white font-black uppercase italic tracking-wider text-xs transition-all flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 cursor-pointer"
+                      >
+                        {missingSubmitting ? (
+                          <span>Submitting Request...</span>
+                        ) : (
+                          <>
+                            <span>Submit Request to Locate Gallery</span>
+                            <Send size={14} />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 bg-green-500/20 border border-green-500/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <CheckCircle2 size={26} className="text-green-400" />
+                    </div>
+                    <h3 className="text-xl font-black italic uppercase text-white mb-2">
+                      Request Received!
+                    </h3>
+                    <p className="text-xs text-gray-300 max-w-md mx-auto mb-3">
+                      Thanks {missingParentName || "for submitting"}! Maxx has been notified to locate <strong>{missingAthleteName}</strong>&apos;s photos.
+                    </p>
+                    <p className="text-xs text-brand-red font-bold uppercase tracking-wider">
+                      We will text your 1-click private gallery link to {missingParentPhone} and email {missingParentEmail}!
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div>
@@ -316,7 +522,6 @@ export function PlayerLookupModal({
                             )}
                           </div>
 
-                          {/* Access Code Box */}
                           <div className="flex items-center space-x-2 bg-black px-3 py-2 border border-white/10 shrink-0">
                             <span className="text-[10px] font-bold uppercase text-gray-400">Code:</span>
                             <span className="font-mono font-black text-sm text-brand-red tracking-wider">
@@ -324,7 +529,7 @@ export function PlayerLookupModal({
                             </span>
                             <button
                               onClick={() => handleCopyCode(code)}
-                              className="text-gray-400 hover:text-white transition-colors ml-1 p-1"
+                              className="text-gray-400 hover:text-white transition-colors ml-1 p-1 cursor-pointer"
                               title="Copy Access Code"
                             >
                               {copiedCode === code ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
@@ -332,9 +537,7 @@ export function PlayerLookupModal({
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
                         <div className="mt-4 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                          {/* 1-Click Direct Gallery Login Button */}
                           <a
                             href={directUrl}
                             target="_blank"
@@ -345,7 +548,6 @@ export function PlayerLookupModal({
                             <ExternalLink size={14} />
                           </a>
 
-                          {/* Text Me This Link Drawer Trigger */}
                           <div className="flex items-center gap-2 flex-1">
                             <div className="relative flex-1">
                               <Smartphone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -363,14 +565,13 @@ export function PlayerLookupModal({
                               type="button"
                               onClick={() => handleClaimPhone(match)}
                               disabled={claimInfo?.loading || !phoneInputs[code]}
-                              className="px-3 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase text-xs tracking-wider transition-colors disabled:opacity-40 shrink-0"
+                              className="px-3 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold uppercase text-xs tracking-wider transition-colors disabled:opacity-40 shrink-0 cursor-pointer"
                             >
                               {claimInfo?.loading ? "Sending..." : "Send"}
                             </button>
                           </div>
                         </div>
 
-                        {/* Claim Feedback */}
                         {claimInfo && (
                           <div
                             className={`mt-2 text-xs p-2 ${
