@@ -31,14 +31,19 @@ import {
   CloudUpload,
   X,
   PlusCircle,
-  Save
+  Save,
+  Users,
+  Download,
+  Search,
+  CheckSquare,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { activeGalleries } from '@/data/events';
-import { GalleryEvent, EventSpecial } from '@/data/types';
+import { GalleryEvent, EventSpecial, OptInRegistration } from '@/data/types';
 import Link from 'next/link';
 
-type UploadMode = 'event' | 'sample' | 'hero' | 'bighead' | 'dashboard';
+type UploadMode = 'event' | 'sample' | 'hero' | 'bighead' | 'dashboard' | 'optins';
 
 interface FileInfo {
   name: string;
@@ -58,6 +63,38 @@ export default function AdminPage() {
   const [loginStep, setLoginStep] = useState<1 | 2>(1);
   const [error, setError] = useState('');
   const [mode, setMode] = useState<UploadMode>('dashboard');
+  const [optIns, setOptIns] = useState<OptInRegistration[]>([]);
+  const [loadingOptIns, setLoadingOptIns] = useState(false);
+  const [optInFilter, setOptInFilter] = useState('all');
+  const [optInSearch, setOptInSearch] = useState('');
+
+  const fetchOptIns = async () => {
+    setLoadingOptIns(true);
+    try {
+      const res = await fetch('/api/opt-in?format=json&_t=' + Date.now());
+      const data = await res.json();
+      if (data.registrations) {
+        setOptIns(data.registrations);
+      }
+    } catch (err) {
+      console.error('Failed to fetch opt-ins:', err);
+    } finally {
+      setLoadingOptIns(false);
+    }
+  };
+
+  const handleDeleteOptIn = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this registration?')) return;
+    try {
+      const res = await fetch(`/api/opt-in?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setOptIns(prev => prev.filter(item => item.id !== id));
+      }
+    } catch (err) {
+      alert('Failed to delete registration');
+    }
+  };
+
   const [selectedGallery, setSelectedGallery] = useState(activeGalleries[0].id);
   const [selectedCategory, setSelectedCategory] = useState('football');
   const [customId, setCustomId] = useState('');
@@ -268,6 +305,12 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
+      useEffect(() => {
+    if (isAuthenticated && mode === 'optins') {
+      fetchOptIns();
+    }
+  }, [isAuthenticated, mode]);
+
     if (isAuthenticated && mode === 'dashboard') {
       fetchEventThumbnails();
     }
@@ -506,7 +549,7 @@ export default function AdminPage() {
             </div>
 
             <AnimatePresence mode="wait">
-              {mode !== 'hero' && mode !== 'dashboard' && (
+              {mode !== 'hero' && mode !== 'dashboard' && mode !== 'optins' && (
                 <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="bg-zinc-900 border border-white/10 p-6 space-y-6 shadow-xl">
                   <div className="flex justify-between items-center">
                     <h3 className="text-xs font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
@@ -569,7 +612,171 @@ export default function AdminPage() {
 
           {/* Main Area */}
           <div className="lg:col-span-9 space-y-8">
-            {mode === 'dashboard' ? (
+            {mode === 'optins' ? (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                  <div>
+                    <h2 className="text-2xl font-black uppercase italic tracking-wider flex items-center gap-2">
+                      <Users className="text-brand-red" size={24} /> Picture Day Opt-In Registrations
+                    </h2>
+                    <p className="text-gray-500 text-xs">
+                      Parents and athletes registered for SMS gallery alerts, launch notifications, and deals.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <a
+                      href="/api/opt-in?format=csv"
+                      download
+                      className="bg-brand-red hover:bg-red-700 text-white px-4 py-2.5 text-[10px] font-black uppercase italic tracking-widest transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(224,40,38,0.35)]"
+                    >
+                      <Download size={14} /> Download CSV for IHPD Text Campaigns
+                    </a>
+                    <button
+                      onClick={fetchOptIns}
+                      disabled={loadingOptIns}
+                      className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2.5 text-[10px] font-black uppercase italic tracking-widest transition-all flex items-center gap-1.5"
+                    >
+                      <RefreshCw size={14} className={loadingOptIns ? "animate-spin text-brand-red" : ""} /> Refresh
+                    </button>
+                    <Link
+                      href="/opt-in"
+                      target="_blank"
+                      className="text-[10px] font-black uppercase text-gray-500 hover:text-brand-red flex items-center gap-1.5 transition-colors"
+                    >
+                      <ExternalLink size={14} /> View Form
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Filter & Search Bar */}
+                <div className="bg-zinc-900 border border-white/10 p-4 rounded-lg flex flex-col md:flex-row gap-4 items-center justify-between">
+                  <div className="relative w-full md:w-80">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <input
+                      type="text"
+                      placeholder="Search name, phone, or email..."
+                      value={optInSearch}
+                      onChange={(e) => setOptInSearch(e.target.value)}
+                      className="w-full bg-black border border-white/10 pl-9 pr-4 py-2 text-xs font-bold text-white placeholder-gray-600 outline-none focus:border-brand-red"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider">Event:</span>
+                    <select
+                      value={optInFilter}
+                      onChange={(e) => setOptInFilter(e.target.value)}
+                      className="bg-black border border-white/10 px-3 py-2 text-xs font-bold text-white outline-none focus:border-brand-red cursor-pointer"
+                    >
+                      <option value="all">All Events ({optIns.length})</option>
+                      {events.map(ev => (
+                        <option key={ev.id} value={ev.id}>{ev.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Integration Info Box */}
+                <div className="bg-zinc-900/60 border border-brand-red/30 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-brand-red/10 border border-brand-red/30 flex items-center justify-center text-brand-red shrink-0">
+                      <FileSpreadsheet size={16} />
+                    </div>
+                    <div>
+                      <span className="font-bold text-white block">Direct Sync Ready for IHPD Text Campaigns</span>
+                      <span className="text-gray-400 text-[11px]">CSV headers automatically match first_name, last_name, phone, student_name, and job_name.</span>
+                    </div>
+                  </div>
+                  <span className="bg-black/80 px-2.5 py-1 text-[10px] text-gray-400 border border-white/5 font-mono select-all">
+                    /api/opt-in?format=csv
+                  </span>
+                </div>
+
+                {/* Registrations Table */}
+                <div className="bg-zinc-900 border border-white/10 rounded-lg overflow-hidden shadow-2xl">
+                  {loadingOptIns ? (
+                    <div className="p-12 text-center text-gray-500 font-bold uppercase text-xs">
+                      <Loader2 size={24} className="animate-spin text-brand-red mx-auto mb-3" />
+                      Loading registrations...
+                    </div>
+                  ) : optIns.length === 0 ? (
+                    <div className="p-12 text-center text-gray-500 font-bold uppercase text-xs space-y-2">
+                      <Users size={32} className="mx-auto text-gray-700 mb-2" />
+                      <p>No registrations yet.</p>
+                      <p className="text-[10px] text-gray-600 font-normal">Share your link (ihatepictureday.com/opt-in) with parents to start collecting contacts!</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-white/10 bg-black/40 text-[9px] font-black uppercase text-gray-500 tracking-wider">
+                            <th className="p-4">Date</th>
+                            <th className="p-4">Parent / Contact</th>
+                            <th className="p-4">Athlete</th>
+                            <th className="p-4">Cell Phone</th>
+                            <th className="p-4">Email</th>
+                            <th className="p-4">Event</th>
+                            <th className="p-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5 font-medium">
+                          {optIns
+                            .filter(r => {
+                              if (optInFilter !== 'all' && r.eventId !== optInFilter && r.eventName !== optInFilter) return false;
+                              if (optInSearch) {
+                                const q = optInSearch.toLowerCase();
+                                const hay = `${r.name} ${r.athleteName || ''} ${r.phone} ${r.email} ${r.eventName}`.toLowerCase();
+                                if (!hay.includes(q)) return false;
+                              }
+                              return true;
+                            })
+                            .map((reg) => (
+                              <tr key={reg.id} className="hover:bg-white/[0.02] transition-colors group">
+                                <td className="p-4 text-gray-500 whitespace-nowrap text-[11px]">
+                                  {new Date(reg.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}{' '}
+                                  <span className="text-[10px] text-gray-600">
+                                    {new Date(reg.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                  </span>
+                                </td>
+                                <td className="p-4 font-bold text-white whitespace-nowrap">
+                                  {reg.name}
+                                </td>
+                                <td className="p-4 text-gray-300 whitespace-nowrap">
+                                  {reg.athleteName || <span className="text-gray-600 italic">—</span>}
+                                </td>
+                                <td className="p-4 whitespace-nowrap">
+                                  <a href={`tel:${reg.phone}`} className="font-mono text-brand-red hover:underline">
+                                    {reg.phone}
+                                  </a>
+                                </td>
+                                <td className="p-4 text-gray-400 whitespace-nowrap">
+                                  <a href={`mailto:${reg.email}`} className="hover:text-white transition-colors">
+                                    {reg.email}
+                                  </a>
+                                </td>
+                                <td className="p-4 whitespace-nowrap">
+                                  <span className="bg-white/5 border border-white/10 px-2 py-1 rounded text-[11px] font-bold text-white">
+                                    {reg.eventName}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-right whitespace-nowrap">
+                                  <button
+                                    onClick={() => handleDeleteOptIn(reg.id)}
+                                    className="p-1.5 text-gray-600 hover:text-brand-red hover:bg-brand-red/10 rounded transition-colors"
+                                    title="Delete registration"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : mode === 'dashboard' ? (
               <div className="space-y-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-black uppercase italic tracking-wider">Event Management</h2>
@@ -931,6 +1138,7 @@ export default function AdminPage() {
                     date: formData.get('date') as string,
                     displayDate: new Date(formData.get('date') as string + 'T12:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
                     samples: editingEvent?.samples || [],
+                    optInActive: formData.get('optInActive') === 'on',
                     specials: modalOffers.filter(o => o.label)
                   };
                   handleSaveEvent(eventData);

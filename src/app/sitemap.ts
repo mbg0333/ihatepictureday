@@ -5,6 +5,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   
   const routes = [
     '',
+    '/opt-in',
     '/services',
     '/how-it-works',
     '/faq',
@@ -17,7 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
-    changeFrequency: route === '/galleries' ? 'weekly' : 'monthly',
-    priority: route === '' ? 1.0 : route === '/booking' ? 0.9 : 0.8,
+    changeFrequency: route === '/galleries' || route === '/opt-in' ? 'weekly' : 'monthly',
+    priority: route === '' ? 1.0 : route === '/booking' || route === '/opt-in' ? 0.9 : 0.8,
   }));
 }

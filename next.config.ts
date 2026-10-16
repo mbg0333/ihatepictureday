@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         destination: '/terms-of-service',
         permanent: true,
       },
+      {
+        source: '/register',
+        destination: '/opt-in',
+        permanent: true,
+      },
     ];
   },
 };

@@ -33,6 +33,7 @@ export const Footer = () => {
               <li><Link href="/services" className="hover:text-brand-red transition-colors">Services</Link></li>
               <li><Link href="/how-it-works" className="hover:text-brand-red transition-colors">How it Works</Link></li>
               <li><Link href="/booking" className="hover:text-brand-red transition-colors">Book Now</Link></li>
+              <li><Link href="/opt-in" className="hover:text-brand-red transition-colors">Picture Day Sign-Up</Link></li>
             </ul>
           </div>
 
@@ -66,5 +67,7 @@ export const Footer = () => {
     </footer>
   );
 };
+
+
 
 

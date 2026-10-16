@@ -1,4 +1,4 @@
-export interface EventSpecial {
+﻿export interface EventSpecial {
   label: string;
   detail: string;
   code?: string;
@@ -17,4 +17,17 @@ export interface GalleryEvent {
   displayDate: string;
   samples: string[];
   specials: EventSpecial[];
+  optInActive?: boolean;
+}
+
+export interface OptInRegistration {
+  id: string;
+  name: string;
+  athleteName?: string;
+  phone: string;
+  email: string;
+  eventId: string;
+  eventName: string;
+  createdAt: string;
+  source?: string;
 }
