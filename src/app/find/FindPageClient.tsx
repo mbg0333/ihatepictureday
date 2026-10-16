@@ -44,6 +44,7 @@ export default function FindPageClient() {
   const [missingParentEmail, setMissingParentEmail] = useState("");
   const [missingParentPhone, setMissingParentPhone] = useState("");
   const [missingNotes, setMissingNotes] = useState("");
+  const [missingConsent, setMissingConsent] = useState(true);
   const [missingSubmitting, setMissingSubmitting] = useState(false);
   const [missingSubmitted, setMissingSubmitted] = useState(false);
   const [missingError, setMissingError] = useState("");
@@ -433,9 +434,35 @@ export default function FindPageClient() {
                             </div>
                           )}
 
+                          {/* 10DLC & TCPA Legal Compliance Notice */}
+                          <div className="bg-black/80 border border-white/10 rounded-lg p-3.5 space-y-2 text-left">
+                            <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={missingConsent}
+                                onChange={(e) => setMissingConsent(e.target.checked)}
+                                required
+                                className="mt-0.5 w-4 h-4 rounded accent-brand-red cursor-pointer shrink-0"
+                              />
+                              <span className="text-[11px] font-bold text-gray-300 leading-snug">
+                                I agree to receive automated SMS alerts with my athlete&apos;s photo gallery link, access code, and picture day updates from iHatePictureDay.
+                              </span>
+                            </label>
+                            <p className="text-[10px] text-gray-500 leading-relaxed border-t border-white/5 pt-2">
+                              Consent is not a condition of purchase. Msg frequency varies. Msg & data rates may apply. Reply <strong className="text-brand-red">STOP</strong> to opt out, <strong className="text-white">HELP</strong> for support. Mobile info is never shared or sold to third parties for marketing. View our{" "}
+                              <Link href="/privacy-policy" target="_blank" className="text-brand-red underline">
+                                Privacy Policy
+                              </Link>{" "}
+                              and{" "}
+                              <Link href="/terms-of-service" target="_blank" className="text-brand-red underline">
+                                Terms
+                              </Link>.
+                            </p>
+                          </div>
+
                           <button
                             type="submit"
-                            disabled={missingSubmitting}
+                            disabled={missingSubmitting || !missingConsent}
                             className="w-full py-4 bg-brand-red hover:bg-white hover:text-brand-red text-white font-black uppercase italic tracking-wider text-sm transition-all flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 cursor-pointer"
                           >
                             {missingSubmitting ? (

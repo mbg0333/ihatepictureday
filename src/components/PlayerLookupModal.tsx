@@ -18,6 +18,7 @@ import {
   HelpCircle,
   CheckCircle2
 } from "lucide-react";
+import Link from "next/link";
 import { LookupMatch } from "@/lib/lookupEngine";
 
 interface PlayerLookupModalProps {
@@ -54,6 +55,7 @@ export function PlayerLookupModal({
   const [missingParentEmail, setMissingParentEmail] = useState("");
   const [missingParentPhone, setMissingParentPhone] = useState("");
   const [missingNotes, setMissingNotes] = useState("");
+  const [missingConsent, setMissingConsent] = useState(true);
   const [missingSubmitting, setMissingSubmitting] = useState(false);
   const [missingSubmitted, setMissingSubmitted] = useState(false);
   const [missingError, setMissingError] = useState("");
@@ -447,9 +449,35 @@ export function PlayerLookupModal({
                         </div>
                       )}
 
+                      {/* 10DLC & TCPA Legal Compliance Notice */}
+                      <div className="bg-black/80 border border-white/10 rounded-lg p-3 space-y-2 text-left">
+                        <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={missingConsent}
+                            onChange={(e) => setMissingConsent(e.target.checked)}
+                            required
+                            className="mt-0.5 w-3.5 h-3.5 rounded accent-brand-red cursor-pointer shrink-0"
+                          />
+                          <span className="text-[10px] font-bold text-gray-300 leading-snug">
+                            I agree to receive automated SMS alerts with my athlete&apos;s gallery link and photo updates from iHatePictureDay.
+                          </span>
+                        </label>
+                        <p className="text-[9px] text-gray-500 leading-relaxed border-t border-white/5 pt-1.5">
+                          Consent not required for purchase. Msg freq varies. Msg & data rates may apply. Reply <strong className="text-brand-red">STOP</strong> to cancel. Mobile info is never shared with third parties. View{" "}
+                          <Link href="/privacy-policy" target="_blank" className="text-brand-red underline">
+                            Privacy Policy
+                          </Link>{" "}
+                          &{" "}
+                          <Link href="/terms-of-service" target="_blank" className="text-brand-red underline">
+                            Terms
+                          </Link>.
+                        </p>
+                      </div>
+
                       <button
                         type="submit"
-                        disabled={missingSubmitting}
+                        disabled={missingSubmitting || !missingConsent}
                         className="w-full py-3.5 bg-brand-red hover:bg-white hover:text-brand-red text-white font-black uppercase italic tracking-wider text-xs transition-all flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 cursor-pointer"
                       >
                         {missingSubmitting ? (
