@@ -28,6 +28,32 @@ interface OptInClientProps {
 export function OptInClient({ availableEvents }: OptInClientProps) {
   const searchParams = useSearchParams();
   const preselectId = searchParams.get("event") || searchParams.get("id") || "";
+  const [eventsList, setEventsList] = useState<GalleryEvent[]>(availableEvents);
+
+  // Synchronize latest events from cloud API and localStorage fallback
+  useEffect(() => {
+    fetch('/api/events')
+      .then(res => res.json())
+      .then(data => {
+        if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+          const filtered = data.events.filter(
+            (e: GalleryEvent) => e.status !== "Archive" && e.optInActive !== false
+          );
+          setEventsList(filtered);
+        }
+      })
+      .catch(() => {
+        try {
+          const saved = localStorage.getItem('ihatepictureday_events');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setEventsList(parsed.filter((e: GalleryEvent) => e.status !== "Archive" && e.optInActive !== false));
+            }
+          }
+        } catch {}
+      });
+  }, []);
 
   const [name, setName] = useState("");
   const [athleteName, setAthleteName] = useState("");
@@ -48,19 +74,61 @@ export function OptInClient({ availableEvents }: OptInClientProps) {
 
   // Auto-select event if passed in query string or default to first
   useEffect(() => {
-    if (preselectId) {
-      const match = availableEvents.find(
-        (e) => e.id.toLowerCase() === preselectId.toLowerCase()
-      );
-      if (match) {
-        setSelectedEventId(match.id);
-        return;
+    if (!preselectId) {
+      if (eventsList.length > 0 && !selectedEventId) {
+        setSelectedEventId(eventsList[0].id);
       }
+      return;
     }
-    if (availableEvents.length > 0 && !selectedEventId) {
-      setSelectedEventId(availableEvents[0].id);
+
+    const clean = preselectId.trim().toLowerCase();
+    const cleanNorm = clean.replace(/[^a-z0-9]/g, "");
+
+    // 1. Match against id, accessCode, or name
+    const match = eventsList.find((e) => {
+      const eId = (e.id || "").toLowerCase();
+      const eIdNorm = eId.replace(/[^a-z0-9]/g, "");
+      const eCode = (e.accessCode || "").toLowerCase();
+      const eCodeNorm = eCode.replace(/[^a-z0-9]/g, "");
+      const eName = (e.name || "").toLowerCase();
+
+      return (
+        eId === clean ||
+        eIdNorm === cleanNorm ||
+        eCode === clean ||
+        eCodeNorm === cleanNorm ||
+        eName.includes(clean)
+      );
+    });
+
+    if (match) {
+      setSelectedEventId(match.id);
+      return;
     }
-  }, [preselectId, availableEvents, selectedEventId]);
+
+    // 2. CRITICAL PRESERVATION: If a specific event code was passed in the URL (e.g. HYB22026),
+    // NEVER fall back to Central Baseball!
+    // Dynamically add it so parents are guaranteed to register for their exact requested event!
+    const customEvent: GalleryEvent = {
+      id: preselectId,
+      name: `${preselectId.toUpperCase()} (Picture Day)`,
+      status: "Live",
+      accessCode: preselectId.toUpperCase(),
+      link: `https://my.photoday.com/g/${preselectId.toUpperCase()}`,
+      date: new Date().toISOString(),
+      displayDate: "Current Season",
+      samples: [],
+      specials: []
+    };
+
+    setEventsList((prev) => {
+      if (prev.some((e) => e.id.toLowerCase() === preselectId.toLowerCase())) {
+        return prev;
+      }
+      return [customEvent, ...prev];
+    });
+    setSelectedEventId(preselectId);
+  }, [preselectId, eventsList, selectedEventId]);
 
   // Format phone number dynamically as (XXX) XXX-XXXX
   const handlePhoneChange = (val: string) => {
@@ -95,7 +163,7 @@ export function OptInClient({ availableEvents }: OptInClientProps) {
     if (selectedEventId === "other") {
       finalEventName = customEventName.trim() || "Other / Special Event";
     } else {
-      const found = availableEvents.find((e) => e.id === selectedEventId);
+      const found = eventsList.find((e) => e.id === selectedEventId);
       if (found) finalEventName = found.name;
     }
 
@@ -209,7 +277,7 @@ export function OptInClient({ availableEvents }: OptInClientProps) {
                       className="w-full bg-black/80 border border-white/15 rounded-lg px-4 py-3.5 text-sm md:text-base font-bold text-white outline-none focus:border-brand-red transition-colors cursor-pointer"
                       required
                     >
-                      {availableEvents.map((evt) => (
+                      {eventsList.map((evt) => (
                         <option key={evt.id} value={evt.id} className="bg-zinc-900 text-white">
                           {evt.name} {evt.displayDate ? `(${evt.displayDate})` : ""}
                         </option>

@@ -1,7 +1,9 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { activeGalleries } from "@/data/events";
+import { getEvents } from "@/lib/events";
 import { OptInClient } from "./OptInClient";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Picture Day Registration & SMS Gallery Access | I Hate Picture Day",
@@ -9,8 +11,9 @@ export const metadata: Metadata = {
   keywords: ["picture day registration", "sports photography alerts", "youth sports photo gallery", "East Texas picture day"],
 };
 
-export default function OptInPage() {
-  const availableEvents = activeGalleries.filter(
+export default async function OptInPage() {
+  const allEvents = await getEvents();
+  const availableEvents = allEvents.filter(
     (e) => e.status !== "Archive" && e.optInActive !== false
   );
 

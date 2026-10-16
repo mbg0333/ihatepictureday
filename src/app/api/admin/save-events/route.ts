@@ -1,8 +1,12 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import { NextResponse } from 'next/server';
+import { saveEvents } from '@/lib/events';
+import { isAuthenticated } from '@/lib/auth';
 
 export async function POST(req: Request) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const { events } = await req.json();
     
@@ -10,19 +14,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Invalid events data' }, { status: 400 });
     }
 
-    const filePath = path.join(process.cwd(), 'src', 'data', 'events.ts');
-    
-    // Generate the TypeScript file content
-    const content = `import { GalleryEvent } from "./types";
+    await saveEvents(events);
 
-export const activeGalleries: GalleryEvent[] = ${JSON.stringify(events, null, 2)};
-`;
-
-    await fs.writeFile(filePath, content, 'utf8');
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, count: events.length });
   } catch (err: any) {
-    console.error('Failed to save events to file:', err);
+    console.error('Failed to save events:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

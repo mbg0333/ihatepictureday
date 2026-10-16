@@ -101,5 +101,36 @@ export const activeGalleries: GalleryEvent[] = [
     "displayDate": "12/13/2025",
     "samples": [],
     "specials": []
-  }
+  },
+  {
+    "id": "lp-football-2026",
+    "name": "LP Football 2026",
+    "status": "Live",
+    "accessCode": "LPFOOTBALL26",
+    "link": "https://my.photoday.com/g/LPFOOTBALL26",
+    "date": "2026-10-03",
+    "displayDate": "10/03/2026",
+    "samples": [],
+    "specials": [
+      {
+        "label": "Free Shipping",
+        "code": "FOOTBALLFREE35",
+        "description": "Free shipping on order $35 and UP",
+        "startDate": "2026-10-01",
+        "endDate": "2026-10-19",
+        "detail": ""
+      }
+    ]
+  },
+  {
+    "id": "hyb22026",
+    "name": "Hudson Youth Basketball 2026",
+    "status": "Live",
+    "accessCode": "HYB22026",
+    "link": "https://my.photoday.com/g/HYB22026",
+    "date": "2026-11-15",
+    "displayDate": "Fall 2026",
+    "samples": [],
+    "specials": []
+  },
 ];

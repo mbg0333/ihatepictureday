@@ -198,24 +198,51 @@ export default function AdminPage() {
     };
     checkAuth();
     
-    // Load persisted events if they exist
-    const saved = localStorage.getItem('ihatepictureday_events');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setEvents(parsed);
-          fetchEventThumbnails(parsed);
-        } else {
-          fetchEventThumbnails(activeGalleries);
+    // Fetch live events from cloud /api/events, merge with local storage, and sync
+    fetch('/api/events')
+      .then(res => res.json())
+      .then(data => {
+        if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+          const saved = localStorage.getItem('ihatepictureday_events');
+          if (saved) {
+            try {
+              const localList: GalleryEvent[] = JSON.parse(saved);
+              if (Array.isArray(localList)) {
+                // If local has events not yet in the cloud, merge and push to cloud
+                const cloudIds = new Set(data.events.map((e: any) => e.id));
+                const missingInCloud = localList.filter((e: any) => !cloudIds.has(e.id));
+                if (missingInCloud.length > 0) {
+                  const merged = [...missingInCloud, ...data.events];
+                  setEvents(merged);
+                  fetchEventThumbnails(merged);
+                  localStorage.setItem('ihatepictureday_events', JSON.stringify(merged));
+                  fetch('/api/admin/save-events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ events: merged })
+                  }).catch(console.error);
+                  return;
+                }
+              }
+            } catch (e) {}
+          }
+          setEvents(data.events);
+          localStorage.setItem('ihatepictureday_events', JSON.stringify(data.events));
+          fetchEventThumbnails(data.events);
         }
-      } catch (err) {
-        console.error("Failed to load saved events:", err);
-        fetchEventThumbnails(activeGalleries);
-      }
-    } else {
-      fetchEventThumbnails(activeGalleries);
-    }
+      })
+      .catch(() => {
+        const saved = localStorage.getItem('ihatepictureday_events');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setEvents(parsed);
+              fetchEventThumbnails(parsed);
+            }
+          } catch (e) {}
+        }
+      });
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -362,6 +389,14 @@ export default function AdminPage() {
     
     setEvents(newEvents);
     localStorage.setItem('ihatepictureday_events', JSON.stringify(newEvents));
+    fetchEventThumbnails(newEvents);
+
+    // Auto-save to cloud so new events are immediately live on /opt-in and /galleries
+    fetch('/api/admin/save-events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: newEvents }),
+    }).catch(err => console.error('Cloud auto-save error:', err));
     
     setIsEventModalOpen(false);
     setEditingEvent(null);

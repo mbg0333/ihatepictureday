@@ -98,15 +98,27 @@ export default function GalleriesPageClient() {
   const [events, setEvents] = useState<GalleryEvent[]>(activeGalleries);
 
   useEffect(() => {
-    // Load persisted events from admin edits
-    const saved = localStorage.getItem('ihatepictureday_events');
-    if (saved) {
-      try {
-        setEvents(JSON.parse(saved));
-      } catch (err) {
-        console.error("Failed to load saved events:", err);
-      }
-    }
+    // Load live events from cloud API, fallback to localStorage
+    fetch('/api/events')
+      .then(res => res.json())
+      .then(data => {
+        if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+          setEvents(data.events);
+        } else {
+          const saved = localStorage.getItem('ihatepictureday_events');
+          if (saved) setEvents(JSON.parse(saved));
+        }
+      })
+      .catch(() => {
+        const saved = localStorage.getItem('ihatepictureday_events');
+        if (saved) {
+          try {
+            setEvents(JSON.parse(saved));
+          } catch (err) {
+            console.error("Failed to load saved events:", err);
+          }
+        }
+      });
   }, []);
 
   return (
