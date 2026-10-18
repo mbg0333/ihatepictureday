@@ -55,7 +55,7 @@ export function PlayerLookupModal({
   const [missingParentEmail, setMissingParentEmail] = useState("");
   const [missingParentPhone, setMissingParentPhone] = useState("");
   const [missingNotes, setMissingNotes] = useState("");
-  const [missingConsent, setMissingConsent] = useState(true);
+  const [missingConsent, setMissingConsent] = useState(false);
   const [missingSubmitting, setMissingSubmitting] = useState(false);
   const [missingSubmitted, setMissingSubmitted] = useState(false);
   const [missingError, setMissingError] = useState("");
@@ -197,7 +197,8 @@ export function PlayerLookupModal({
           parentName: missingParentName.trim(),
           parentEmail: missingParentEmail.trim(),
           parentPhone: missingParentPhone.trim(),
-          notes: missingNotes.trim()
+          notes: missingNotes.trim(),
+          smsConsent: missingConsent
         })
       });
 
@@ -456,7 +457,6 @@ export function PlayerLookupModal({
                             type="checkbox"
                             checked={missingConsent}
                             onChange={(e) => setMissingConsent(e.target.checked)}
-                            required
                             className="mt-0.5 w-3.5 h-3.5 rounded accent-brand-red cursor-pointer shrink-0"
                           />
                           <span className="text-[10px] font-bold text-gray-300 leading-snug">
@@ -477,7 +477,7 @@ export function PlayerLookupModal({
 
                       <button
                         type="submit"
-                        disabled={missingSubmitting || !missingConsent}
+                        disabled={missingSubmitting}
                         className="w-full py-3.5 bg-brand-red hover:bg-white hover:text-brand-red text-white font-black uppercase italic tracking-wider text-xs transition-all flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 cursor-pointer"
                       >
                         {missingSubmitting ? (
@@ -598,7 +598,18 @@ export function PlayerLookupModal({
                               {claimInfo?.loading ? "Sending..." : "Send"}
                             </button>
                           </div>
-                        </div>
+                          </div>
+
+                          <p className="text-[10px] text-gray-500 leading-tight mt-2">
+                            By clicking Send, you agree to receive a 1-time text link to your athlete&apos;s gallery from iHatePictureDay. Msg &amp; data rates may apply. Reply STOP to cancel. View{" "}
+                            <Link href="/privacy-policy" target="_blank" className="text-brand-red underline">
+                              Privacy Policy
+                            </Link>{" "}
+                            and{" "}
+                            <Link href="/terms-of-service" target="_blank" className="text-brand-red underline">
+                              Terms
+                            </Link>.
+                          </p>
 
                         {claimInfo && (
                           <div

@@ -61,7 +61,7 @@ export function OptInClient({ availableEvents }: OptInClientProps) {
   const [email, setEmail] = useState("");
   const [selectedEventId, setSelectedEventId] = useState("");
   const [customEventName, setCustomEventName] = useState("");
-  const [consentAgreed, setConsentAgreed] = useState(true);
+  const [consentAgreed, setConsentAgreed] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);

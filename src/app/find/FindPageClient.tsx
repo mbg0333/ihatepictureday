@@ -44,7 +44,7 @@ export default function FindPageClient() {
   const [missingParentEmail, setMissingParentEmail] = useState("");
   const [missingParentPhone, setMissingParentPhone] = useState("");
   const [missingNotes, setMissingNotes] = useState("");
-  const [missingConsent, setMissingConsent] = useState(true);
+  const [missingConsent, setMissingConsent] = useState(false);
   const [missingSubmitting, setMissingSubmitting] = useState(false);
   const [missingSubmitted, setMissingSubmitted] = useState(false);
   const [missingError, setMissingError] = useState("");
@@ -181,7 +181,8 @@ export default function FindPageClient() {
           parentName: missingParentName.trim(),
           parentEmail: missingParentEmail.trim(),
           parentPhone: missingParentPhone.trim(),
-          notes: missingNotes.trim()
+          notes: missingNotes.trim(),
+          smsConsent: missingConsent
         })
       });
 
@@ -441,7 +442,6 @@ export default function FindPageClient() {
                                 type="checkbox"
                                 checked={missingConsent}
                                 onChange={(e) => setMissingConsent(e.target.checked)}
-                                required
                                 className="mt-0.5 w-4 h-4 rounded accent-brand-red cursor-pointer shrink-0"
                               />
                               <span className="text-[11px] font-bold text-gray-300 leading-snug">
@@ -462,7 +462,7 @@ export default function FindPageClient() {
 
                           <button
                             type="submit"
-                            disabled={missingSubmitting || !missingConsent}
+                            disabled={missingSubmitting}
                             className="w-full py-4 bg-brand-red hover:bg-white hover:text-brand-red text-white font-black uppercase italic tracking-wider text-sm transition-all flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 cursor-pointer"
                           >
                             {missingSubmitting ? (
@@ -585,6 +585,17 @@ export default function FindPageClient() {
                                 </button>
                               </div>
                             </div>
+
+                            <p className="text-[10px] text-gray-500 leading-tight mt-2">
+                              By clicking &quot;Text Me Link&quot;, you agree to receive a 1-time text link to your athlete&apos;s gallery and updates from iHatePictureDay. Msg &amp; data rates may apply. Reply STOP to cancel. View{" "}
+                              <Link href="/privacy-policy" target="_blank" className="text-brand-red underline">
+                                Privacy Policy
+                              </Link>{" "}
+                              and{" "}
+                              <Link href="/terms-of-service" target="_blank" className="text-brand-red underline">
+                                Terms
+                              </Link>.
+                            </p>
 
                             {claimInfo && (
                               <div

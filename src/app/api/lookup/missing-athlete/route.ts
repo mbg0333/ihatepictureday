@@ -27,7 +27,8 @@ export async function POST(req: Request) {
       parentName,
       parentEmail,
       parentPhone,
-      notes
+      notes,
+      smsConsent
     } = body;
 
     if (!parentPhone || !parentEmail || !athleteName) {
@@ -52,6 +53,7 @@ export async function POST(req: Request) {
       teamName: (teamName || '').trim(),
       age: (age || '').trim(),
       notes: (notes || '').trim(),
+      smsConsent: Boolean(smsConsent),
       createdAt,
       source: 'missing_athlete_lookup'
     };
@@ -110,6 +112,12 @@ export async function POST(req: Request) {
                   <td style="padding: 8px; border-bottom: 1px solid #222; font-weight: bold; color: #888;">Parent Email:</td>
                   <td style="padding: 8px; border-bottom: 1px solid #222;"><a href="mailto:${record.email}" style="color: #E02826;">${record.email}</a></td>
                 </tr>
+                                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #222; font-weight: bold; color: #888;">SMS Updates Consent:</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #222; color: ${record.smsConsent ? '#4ade80' : '#f87171'}; font-weight: bold;">
+                    ${record.smsConsent ? '✅ Opted In to Automated SMS Alerts' : '❌ No SMS Consent (Contact via Email Only)'}
+                  </td>
+                </tr>
                 ${notes ? `
                 <tr>
                   <td style="padding: 8px; border-bottom: 1px solid #222; font-weight: bold; color: #888;">Notes:</td>
@@ -119,7 +127,7 @@ export async function POST(req: Request) {
               </table>
               
               <div style="margin-top: 24px; padding: 12px; background: #1a1a1a; border-left: 3px solid #E02826; font-size: 12px; color: #aaa;">
-                Next step: Find this athlete in GotPhoto or your camera cards, copy their 1-click gallery link, and reply to their email or text them!
+                Next step: Find this athlete in GotPhoto or your camera cards, copy their 1-click gallery link, and ${record.smsConsent ? "reply to their email or text them!" : "reply to their email (SMS consent was NOT provided)."}
               </div>
             </div>
           `

@@ -695,6 +695,7 @@ export default function BigHeadsPage() {
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 flex items-center gap-2"><Phone size={14} /> Phone Number</label>
                       <input required className="w-full bg-brand-black border border-white/10 p-4 font-bold outline-none focus:border-brand-red" value={personalInfo.phone} onChange={e => setPersonalInfo({...personalInfo, phone: e.target.value})} />
+                        <p className="text-[10px] text-gray-500 font-medium">For order questions and shipping updates only. We never send promotional texts or share your number.</p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 flex items-center gap-2"><MapPin size={14} /> Shipping Address</label>
