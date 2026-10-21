@@ -96,32 +96,24 @@ const GalleryStack = ({ eventId, initialSamples = [] }: { eventId: string, initi
   );
 };
 
-export default function GalleriesPageClient() {
-  const [events, setEvents] = useState<GalleryEvent[]>(activeGalleries);
+interface GalleriesPageClientProps {
+  initialEvents?: GalleryEvent[];
+}
+
+export default function GalleriesPageClient({ initialEvents }: GalleriesPageClientProps) {
+  const [events, setEvents] = useState<GalleryEvent[]>(initialEvents || activeGalleries);
   const [lookupModalOpen, setLookupModalOpen] = useState(false);
 
   useEffect(() => {
-    // Load live events from cloud API, fallback to localStorage
-    fetch('/api/events')
+    // Refresh live events from cloud API to ensure freshness
+    fetch(`/api/events?_t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         if (data.events && Array.isArray(data.events) && data.events.length > 0) {
           setEvents(data.events);
-        } else {
-          const saved = localStorage.getItem('ihatepictureday_events');
-          if (saved) setEvents(JSON.parse(saved));
         }
       })
-      .catch(() => {
-        const saved = localStorage.getItem('ihatepictureday_events');
-        if (saved) {
-          try {
-            setEvents(JSON.parse(saved));
-          } catch (err) {
-            console.error("Failed to load saved events:", err);
-          }
-        }
-      });
+      .catch(console.error);
   }, []);
 
   return (

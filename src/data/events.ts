@@ -2,6 +2,48 @@ import { GalleryEvent } from "./types";
 
 export const activeGalleries: GalleryEvent[] = [
   {
+    "id": "HYB22026",
+    "name": "Hudson Youth Basketball 2026",
+    "status": "Coming Soon",
+    "accessCode": "HYB2026",
+    "link": "https://my.photoday.com/g/HYB2026",
+    "date": "2026-12-19",
+    "displayDate": "12/19/2026",
+    "samples": [],
+    "specials": []
+  },
+  {
+    "id": "LPARSoccer2026",
+    "name": "LPAR Soccer 2026",
+    "status": "Advance Pay Available",
+    "accessCode": "LPSOCCER26",
+    "link": "https://my.photoday.com/g/LPSOCCER26",
+    "date": "2026-10-17",
+    "displayDate": "10/17/2026",
+    "samples": [],
+    "specials": []
+  },
+  {
+    "id": "LPFOOTBALL26",
+    "name": "LP Football 2026",
+    "status": "Live",
+    "accessCode": "LPFOOTBALL26",
+    "link": "https://my.photoday.com/g/LPFOOTBALL26",
+    "date": "2026-10-03",
+    "displayDate": "10/03/2026",
+    "samples": [],
+    "specials": [
+      {
+        "label": "Free Shipping",
+        "code": "FOOTBALLFREE35",
+        "description": "Free shipping on order $35 and UP",
+        "startDate": "2026-10-01",
+        "endDate": "2026-10-19",
+        "detail": ""
+      }
+    ]
+  },
+  {
     "id": "central",
     "name": "Central Youth Baseball & Softball",
     "status": "Live",
@@ -101,36 +143,5 @@ export const activeGalleries: GalleryEvent[] = [
     "displayDate": "12/13/2025",
     "samples": [],
     "specials": []
-  },
-  {
-    "id": "lp-football-2026",
-    "name": "LP Football 2026",
-    "status": "Live",
-    "accessCode": "LPFOOTBALL26",
-    "link": "https://my.photoday.com/g/LPFOOTBALL26",
-    "date": "2026-10-03",
-    "displayDate": "10/03/2026",
-    "samples": [],
-    "specials": [
-      {
-        "label": "Free Shipping",
-        "code": "FOOTBALLFREE35",
-        "description": "Free shipping on order $35 and UP",
-        "startDate": "2026-10-01",
-        "endDate": "2026-10-19",
-        "detail": ""
-      }
-    ]
-  },
-  {
-    "id": "hyb22026",
-    "name": "Hudson Youth Basketball 2026",
-    "status": "Live",
-    "accessCode": "HYB22026",
-    "link": "https://my.photoday.com/g/HYB22026",
-    "date": "2026-11-15",
-    "displayDate": "Fall 2026",
-    "samples": [],
-    "specials": []
-  },
+  }
 ];

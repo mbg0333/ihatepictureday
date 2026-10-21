@@ -198,34 +198,11 @@ export default function AdminPage() {
     };
     checkAuth();
     
-    // Fetch live events from cloud /api/events, merge with local storage, and sync
-    fetch('/api/events')
+    // Fetch live events from cloud /api/events (cloud is the single source of truth)
+    fetch(`/api/events?_t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         if (data.events && Array.isArray(data.events) && data.events.length > 0) {
-          const saved = localStorage.getItem('ihatepictureday_events');
-          if (saved) {
-            try {
-              const localList: GalleryEvent[] = JSON.parse(saved);
-              if (Array.isArray(localList)) {
-                // If local has events not yet in the cloud, merge and push to cloud
-                const cloudIds = new Set(data.events.map((e: any) => e.id));
-                const missingInCloud = localList.filter((e: any) => !cloudIds.has(e.id));
-                if (missingInCloud.length > 0) {
-                  const merged = [...missingInCloud, ...data.events];
-                  setEvents(merged);
-                  fetchEventThumbnails(merged);
-                  localStorage.setItem('ihatepictureday_events', JSON.stringify(merged));
-                  fetch('/api/admin/save-events', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ events: merged })
-                  }).catch(console.error);
-                  return;
-                }
-              }
-            } catch (e) {}
-          }
           setEvents(data.events);
           localStorage.setItem('ihatepictureday_events', JSON.stringify(data.events));
           fetchEventThumbnails(data.events);
@@ -376,6 +353,24 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Failed to fetch event thumbnails:', err);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string, eventName: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${eventName}"? This will remove it from the live website and sign-up form.`)) {
+      return;
+    }
+    const updated = events.filter(e => e.id !== eventId);
+    setEvents(updated);
+    localStorage.setItem('ihatepictureday_events', JSON.stringify(updated));
+    try {
+      await fetch('/api/admin/save-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ events: updated }),
+      });
+    } catch (err) {
+      console.error('Failed to sync deletion:', err);
     }
   };
 
@@ -1092,6 +1087,13 @@ export default function AdminPage() {
                               </button>
                               <button onClick={() => { setMode('event'); setSelectedGallery(event.id); }} className="px-4 py-2 border border-brand-red/30 hover:bg-brand-red text-white text-[9px] font-black uppercase italic tracking-widest transition-all">
                                 Manage Gallery Images
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteEvent(event.id, event.name)} 
+                                className="px-3 py-2 border border-white/10 hover:border-brand-red/50 bg-white/5 hover:bg-brand-red/20 text-gray-500 hover:text-brand-red text-[9px] font-black uppercase italic tracking-widest transition-all"
+                                title="Delete Event"
+                              >
+                                <Trash2 size={12} />
                               </button>
                             </div>
                           </div>

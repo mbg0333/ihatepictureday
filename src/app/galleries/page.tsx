@@ -1,5 +1,8 @@
 import GalleriesPageClient from "./GalleriesPageClient";
 import type { Metadata } from "next";
+import { getEvents } from "@/lib/events";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Active Youth Sports Galleries | I Hate Picture Day",
@@ -12,6 +15,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GalleriesPage() {
-  return <GalleriesPageClient />;
+export default async function GalleriesPage() {
+  const events = await getEvents();
+  return <GalleriesPageClient initialEvents={events} />;
 }
