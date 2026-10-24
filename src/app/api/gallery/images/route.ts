@@ -1,3 +1,4 @@
+export const revalidate = 86400; // Cache 24 hours at Edge CDN
 import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 

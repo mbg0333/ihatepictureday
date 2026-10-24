@@ -11,6 +11,12 @@ const BLOB_PREFIX = 'data/email_opens/';
 // Standard 1x1 transparent GIF (42 bytes)
 const PIXEL_GIF = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
+// In-memory cache to debounce Apple Mail Privacy Protection and duplicate pixel pings
+const memoryCache = new Map<string, OpenRecord>();
+const lastSaveTimestamp = new Map<string, number>();
+const SAVE_COOLDOWN_MS = 60000; // Only write to Blob once per 60 seconds per tracking ID
+
+
 export interface OpenRecord {
   trackingId: string;
   firstOpenedAt: string;
@@ -20,6 +26,10 @@ export interface OpenRecord {
 }
 
 async function getOpenRecord(cleanId: string): Promise<OpenRecord | null> {
+  // Check in-memory cache first to avoid Blob list operations
+  if (memoryCache.has(cleanId)) {
+    return memoryCache.get(cleanId)!;
+  }
   // 1. Try Vercel Blob
   try {
     const { blobs } = await list({ prefix: `${BLOB_PREFIX}${cleanId}.json` });
@@ -42,6 +52,17 @@ async function getOpenRecord(cleanId: string): Promise<OpenRecord | null> {
 }
 
 async function saveOpenRecord(record: OpenRecord): Promise<void> {
+  // Update in-memory cache immediately
+  memoryCache.set(record.trackingId, record);
+
+  // Debounce writes: skip Vercel Blob if written in the last 60 seconds
+  const now = Date.now();
+  const lastSaved = lastSaveTimestamp.get(record.trackingId) || 0;
+  if (now - lastSaved < SAVE_COOLDOWN_MS) {
+    return;
+  }
+  lastSaveTimestamp.set(record.trackingId, now);
+
   // 1. Try Vercel Blob
   try {
     await put(`${BLOB_PREFIX}${record.trackingId}.json`, JSON.stringify(record, null, 2), {
@@ -94,13 +115,20 @@ async function loadAllOpenRecords(): Promise<OpenRecord[]> {
   try {
     const raw = await fs.readFile(LOCAL_TRACKING_PATH, 'utf8');
     const localMap: Record<string, OpenRecord> = JSON.parse(raw);
-    const existingIds = new Set(records.map(r => r.trackingId));
+    const localExisting = new Set(records.map(r => r.trackingId));
     for (const item of Object.values(localMap)) {
-      if (!existingIds.has(item.trackingId)) {
+      if (!localExisting.has(item.trackingId)) {
         records.push(item);
       }
     }
   } catch {}
+
+  const finalExisting = new Set(records.map(r => r.trackingId));
+  for (const item of memoryCache.values()) {
+    if (!finalExisting.has(item.trackingId)) {
+      records.push(item);
+    }
+  }
 
   return records;
 }

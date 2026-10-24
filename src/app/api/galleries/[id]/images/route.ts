@@ -1,7 +1,7 @@
 import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
-export const revalidate = 60; // Cache for 60 seconds for performance
+export const revalidate = 86400; // Cache for 60 seconds for performance
 
 export async function GET(
   request: Request,

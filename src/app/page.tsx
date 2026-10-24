@@ -7,52 +7,30 @@ import { WhyUs } from "@/components/WhyUs";
 import { ServicesPreview } from "@/components/ServicesPreview";
 import { LogoCloud } from "@/components/LogoCloud";
 import { Footer } from "@/components/Footer";
-import { list } from '@vercel/blob';
+// Statically revalidate page at Edge CDN once every 24 hours to prevent function invocation spikes
+export const revalidate = 86400;
 
 export default async function Home() {
   let heroImages: string[] = [];
 
-  // 1. Try to fetch from Vercel Blob first (Production)
+  // 1. Read local hero images first (0 Vercel Blob operations)
+  const heroDir = path.join(process.cwd(), 'public', 'images', 'hero');
   try {
-    const { blobs } = await list({ prefix: 'images/hero/' });
-    if (blobs.length > 0) {
-      heroImages = blobs
-        .filter(blob => !blob.pathname.split('/').pop()?.startsWith('HIDDEN_'))
-        .map(blob => blob.url);
+    if (fs.existsSync(heroDir)) {
+      const files = fs.readdirSync(heroDir);
+      heroImages = files
+        .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
+        .map(file => `/images/hero/${encodeURIComponent(file)}`);
     }
   } catch (e) {
-    console.error("Error reading cloud hero images:", e);
+    console.error("Error reading local hero images:", e);
   }
 
-  // 2. If no cloud hero images, try cloud event images fallback
+  // 2. Fallback to event images if hero directory was empty
   if (heroImages.length === 0) {
+    const eventsDir = path.join(process.cwd(), 'public', 'images', 'events');
     try {
-      const { blobs } = await list({ prefix: 'images/events/' });
-      if (blobs.length > 0) {
-        heroImages = blobs.map(blob => blob.url);
-      }
-    } catch (e) {
-      console.error("Error reading cloud event images fallback:", e);
-    }
-  }
-
-  // 3. Last Resort: Try local filesystem (for local development or if cloud is empty)
-  if (heroImages.length === 0) {
-    const heroDir = path.join(process.cwd(), 'public', 'images', 'hero');
-    try {
-      if (fs.existsSync(heroDir)) {
-        const files = fs.readdirSync(heroDir);
-        heroImages = files
-          .filter(file => /\.(jpg|jpeg|png|webp|gif)$/i.test(file))
-          .map(file => `/images/hero/${encodeURIComponent(file)}`);
-      }
-    } catch (e) {
-      console.error("Error reading local hero images:", e);
-    }
-
-    if (heroImages.length === 0) {
-      const eventsDir = path.join(process.cwd(), 'public', 'images', 'events');
-      try {
+      if (fs.existsSync(eventsDir)) {
         const eventFolders = fs.readdirSync(eventsDir);
         eventFolders.forEach(folder => {
           const folderPath = path.join(eventsDir, folder);
@@ -63,12 +41,22 @@ export default async function Home() {
             heroImages = [...heroImages, ...files];
           }
         });
-      } catch (e) {
-        console.error("Error reading local event images fallback:", e);
       }
+    } catch (e) {
+      console.error("Error reading local event images fallback:", e);
     }
   }
-  
+
+  // 3. Fallback to known default hero images
+  if (heroImages.length === 0) {
+    heroImages = [
+      '/images/hero/6U_DODGERS.jpg',
+      '/images/hero/berkleesmoke.jpg',
+      '/images/hero/Charleigh-Spencer-12U-LadyDawgsWhite_003_2_TMP.jpg',
+      '/images/hero/Reed-Gandy-12U-RedSox_004_5_TMP.jpg',
+      '/images/hero/Will-Gandy-6U-Dodgers_003_2_TMP.jpg',
+    ];
+  }
   // Shuffle images
   const shuffledImages = heroImages.sort(() => 0.5 - Math.random());
 
